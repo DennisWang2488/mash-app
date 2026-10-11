@@ -48,7 +48,7 @@ import { useServantSkillIcons, type SkillIcons } from "../team/useServantSkillIc
 import { CommandSpellOptionButtons } from "../../components/common/CommandSpellOptionButtons";
 import { SkillOptionButtons } from "../../components/common/SkillOptionButtons";
 import { EnemyTargetButtons, EnemyTargetSelector } from "../battle/EnemyTargetSelector";
-import { servantSlotIndex, skillSlotIndex } from "../battle/battleSceneModel";
+import { preparationDraftTitle, preparationEditDraft, servantSlotIndex, skillSlotIndex } from "../battle/battleSceneModel";
 import { useServantSkillTargeting } from "../battle/useServantSkillTargeting";
 import { useServantSkillSelections } from "../battle/useServantSkillSelections";
 import type {
@@ -1014,7 +1014,7 @@ function AdvancedStrategyEditor({
                 <Cross2Icon width={13} height={13} />
               </button>
               <ActionRowControls index={index} count={startupActions.length} disabled={prepDraft != null}
-                onEdit={() => {setEditingPrepIndex(index);setPrepDraft({step:"source"});}}
+                onEdit={() => {setEditingPrepIndex(index);setPrepDraft(preparationEditDraft(action));}}
                 onMove={direction => {const next=[...startupActions];[next[index],next[index+direction]]=[next[index+direction],next[index]];updateStartupActions(next);}} />
               <AdvancedPreparationActionSummary
                 action={action}
@@ -1035,7 +1035,7 @@ function AdvancedStrategyEditor({
 <button type="button" onClick={() => setPrepDraft({step:"option",source:"commandSpell"})}><i className="command-diamond" />使用令咒</button><button type="button" onClick={() => setPrepDraft({ step: "target", source: "enemyTarget", option: "select" })}><i className="command-diamond" />选择敌方目标</button></div>
           ) : (
             <div className="command-inline-draft">
-              <CommandDraftHeading title={prepDraft.step !== "source" && prepDraft.source === "enemyTarget" ? "选择敌方目标" : editingPrepIndex != null ? "编辑技能指令" : prepDraft.step !== "source" && prepDraft.source === "commandSpell" ? "使用令咒" : "添加技能指令"} hint={prepDraft.step === "source" ? "选择前排从者或御主礼装" : prepDraft.step === "option" ? "选择技能" : prepDraft.step === "target" ? "选择目标" : prepDraft.step === "orderChange" ? "从前排和后排各选择一名从者" : "选择技能选项"} onReselect={prepDraft.step === "option" && prepDraft.source !== "commandSpell" ? () => setPrepDraft({ step: "source" }) : undefined} onCancel={() => {setPrepDraft(null);setEditingPrepIndex(null);}} />
+              <CommandDraftHeading title={preparationDraftTitle(prepDraft, editingPrepIndex != null)} hint={prepDraft.step === "source" ? "选择前排从者或御主礼装" : prepDraft.step === "option" ? "选择技能" : prepDraft.step === "target" ? "选择目标" : prepDraft.step === "orderChange" ? "从前排和后排各选择一名从者" : "选择技能选项"} onReselect={prepDraft.step === "option" && prepDraft.source !== "commandSpell" ? () => setPrepDraft({ step: "source" }) : undefined} onCancel={() => {setPrepDraft(null);setEditingPrepIndex(null);}} />
               <div className="battle-choice-row">
               {prepDraft.step === "source" ? (
                 <>
@@ -1069,7 +1069,7 @@ function AdvancedStrategyEditor({
                     return <FaceChip servant={servant} index={index} src={servant ? faces[servant.variantKey] : null} isSupport={member.isSupport} selected onClick={() => setPrepDraft({ step: "source" })} />;
                   })()}
                   {prepDraft.source === "equipment" && <MysticCodeChoice code={mysticCode} gender={mysticCodeGender} selected onClick={() => setPrepDraft({ step: "source" })} />}
-                  {prepDraft.source === "commandSpell" && <CommandSpellChoice gender={mysticCodeGender} selected onClick={() => setPrepDraft({ step: "source" })} />}
+                  {prepDraft.source === "commandSpell" && <CommandSpellChoice gender={mysticCodeGender} selected onClick={() => setPrepDraft({ step: "option", source: "commandSpell" })} />}
                   {prepDraft.source === "commandSpell"
                     ? <div className="battle-option-group command-skill-options"><CommandSpellOptionButtons onSelect={option => setPrepDraft({ step: "target", source: prepDraft.source, option })} /></div>
                     : (

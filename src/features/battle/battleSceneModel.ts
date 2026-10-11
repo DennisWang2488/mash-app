@@ -3,6 +3,7 @@ import type {
   AttackCard,
   BattleTurn,
   OrderChangeSelection,
+  PreparationAction,
   SkillSelection,
   SkillSelectionType,
 } from "../../types/command";
@@ -38,6 +39,29 @@ export type PrepDraft =
 export type AttackDraft =
   | { step: "source"; targetIndex: number | null }
   | { step: "option"; source: AttackSource; targetIndex: number | null };
+
+export function preparationEditDraft(action: PreparationAction): PrepDraft {
+  if (action.type === "commandSpell") {
+    return { step: "option", source: "commandSpell" };
+  }
+  if (action.type === "enemyTarget") {
+    return { step: "target", source: "enemyTarget", option: "select" };
+  }
+  return { step: "source" };
+}
+
+export function preparationDraftTitle(
+  draft: { step: PrepDraft["step"]; source?: PrepSource | PartySlot },
+  editing: boolean,
+): string {
+  if (draft.step !== "source" && draft.source === "enemyTarget") {
+    return editing ? "编辑敌方目标" : "选择敌方目标";
+  }
+  if (draft.step !== "source" && draft.source === "commandSpell") {
+    return editing ? "编辑令咒" : "使用令咒";
+  }
+  return editing ? "编辑技能指令" : "添加技能指令";
+}
 
 export const FIXED_ATTACK_CARD_COUNT = 3;
 

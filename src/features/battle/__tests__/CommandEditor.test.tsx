@@ -298,6 +298,80 @@ describe("CommandEditor pagination", () => {
     expect(preparation).toHaveAttribute("aria-pressed", "true");
   });
 
+  describe.each([false, true])("preparation editing in advanced mode %s", advancedMode => {
+    const cases = [
+      { type: "commandSpell" as const, spell: "np_release" as const, nextSpell: "restore", option: "灵基修复" },
+      { type: "commandSpell" as const, spell: "restore" as const, nextSpell: "np_release", option: "宝具解放" },
+      { type: "enemyTarget" as const },
+    ];
+
+    function renderAction(action: PreparationAction) {
+      const untouched: PreparationAction = { id: "untouched", type: "equipment", skill: "skill_1", target: null };
+      const scene = makeScene("scene", "skill_1");
+      scene.turns[0].preparationActions = [action, untouched];
+      const advancedScene: AdvancedBattleScene = {
+        id: "advanced_scene", startupActions: [],
+        turns: [{ id: "advanced_turn", actions: [action, untouched] }], rules: [],
+      };
+      mockInvoke(async command => {
+        if (command === "load_battle_scenes") return [scene];
+        if (command === "load_advanced_battle_scenes") return [advancedScene];
+        return [];
+      });
+      renderWithTheme(<CommandEditor projectId="project_1" advancedMode={advancedMode}
+        partyLineup={[makeServant(1, "甲"), makeServant(2, "乙"), makeServant(3, "丙")]} />);
+      return untouched;
+    }
+
+    it.each(cases)("edits $type $spell without converting or appending the action", async testCase => {
+      const user = userEvent.setup();
+      const action: PreparationAction = testCase.type === "enemyTarget"
+        ? { id: "original", type: "enemyTarget", target: "enemy_3" }
+        : { id: "original", type: "commandSpell", spell: testCase.spell, target: "servant_1" };
+      const untouched = renderAction(action);
+      if (advancedMode) await selectPreparation();
+      await user.click(await screen.findByRole("button", { name: "编辑行动 1" }));
+      expect(screen.getByText(testCase.type === "enemyTarget" ? "编辑敌方目标" : "编辑令咒")).toBeInTheDocument();
+      expect(screen.queryByText("选择前排从者或御主礼装")).not.toBeInTheDocument();
+      expect(screen.queryByText("编辑技能指令")).not.toBeInTheDocument();
+      if (testCase.type === "enemyTarget") {
+        await user.click(within(screen.getByRole("group", { name: "选择敌方目标" })).getByRole("button", { name: "敌人 6" }));
+      } else {
+        // Clicking the selected spell source must keep the editor in the spell flow.
+        await user.click(screen.getByRole("button", { name: "令咒" }));
+        expect(screen.getByText("编辑令咒")).toBeInTheDocument();
+        await user.click(screen.getByRole("button", { name: testCase.option }));
+        expect(screen.getByText("编辑令咒")).toBeInTheDocument();
+        await user.click(screen.getByRole("button", { name: "乙" }));
+      }
+      const updated = testCase.type === "enemyTarget"
+        ? { id: "original", type: "enemyTarget", target: "enemy_6" }
+        : expect.objectContaining({ id: "original", type: "commandSpell", spell: testCase.nextSpell, target: "servant_2", targetServantId: 2 });
+      await waitFor(() => expect(vi.mocked(invoke)).toHaveBeenCalledWith(
+        advancedMode ? "save_advanced_battle_scenes" : "save_battle_scenes",
+        expect.objectContaining({ scenes: [expect.objectContaining({ turns: [expect.objectContaining(
+          advancedMode ? { actions: [updated, untouched] } : { preparationActions: [updated, untouched] }
+        )] })] })
+      ));
+    });
+
+    it.each(["commandSpell", "enemyTarget"] as const)("cancels editing %s without saving", async type => {
+      const user = userEvent.setup();
+      renderAction(type === "enemyTarget"
+        ? { id: "original", type, target: "enemy_3" }
+        : { id: "original", type, spell: "np_release", target: "servant_1" });
+      if (advancedMode) await selectPreparation();
+      await user.click(await screen.findByRole("button", { name: "编辑行动 1" }));
+      if (type === "commandSpell") await user.click(screen.getByRole("button", { name: "灵基修复" }));
+      await user.click(screen.getByRole("button", { name: "撤销添加行动" }));
+      expect(screen.queryByRole("button", { name: "撤销添加行动" })).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "编辑行动 1" })).toBeEnabled();
+      expect(vi.mocked(invoke).mock.calls.some(([command]) =>
+        command === "mutate_command_editor" || command === "save_battle_scenes" || command === "save_advanced_battle_scenes"
+      )).toBe(false);
+    });
+  });
+
   it.each([false, true])("keeps the selected skill source visible and allows reselecting it in advanced mode %s", async advancedMode => {
     const user = userEvent.setup();
     mockInvoke(async () => []);

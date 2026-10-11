@@ -51,6 +51,8 @@ import {
   type AttackSource,
   type EnemyTarget,
   type PartySlot,
+  preparationEditDraft,
+  preparationDraftTitle,
   type PrepDraft,
   type PrepSource,
 } from "./battleSceneModel";
@@ -799,7 +801,7 @@ export function BattleSceneBlock({
                 }
               />
               <ActionRowControls index={index} count={preparationActions.length} disabled={prepDraft != null}
-                onEdit={() => {setEditingPrepIndex(index);setPrepDraft({step:"source"});}}
+                onEdit={() => {setEditingPrepIndex(index);setPrepDraft(preparationEditDraft(action));}}
                 onMove={direction => {const next=[...preparationActions];[next[index],next[index+direction]]=[next[index+direction],next[index]];updatePreparationActions(next);}} />
               <PreparationActionSummary
                 action={action}
@@ -812,7 +814,7 @@ export function BattleSceneBlock({
             </div>
           ))}
           <div className={`battle-add-row${prepDraft ? " command-inline-draft" : ""}`}>
-            {prepDraft && <CommandDraftHeading title={prepDraft.step !== "source" && prepDraft.source === "enemyTarget" ? "选择敌方目标" : editingPrepIndex != null ? "编辑技能指令" : prepDraft.step !== "source" && prepDraft.source === "commandSpell" ? "使用令咒" : "添加技能指令"} hint={prepDraft.step === "source" ? "选择前排从者或御主礼装" : prepDraft.step === "option" ? "选择技能" : prepDraft.step === "target" ? "选择目标" : prepDraft.step === "orderChange" ? "从前排和后排各选择一名从者" : "选择技能选项"} onReselect={prepDraft.step === "option" && prepDraft.source !== "commandSpell" ? () => setPrepDraft({ step: "source" }) : undefined} onCancel={() => {setPrepDraft(null);setEditingPrepIndex(null);}} />}
+            {prepDraft && <CommandDraftHeading title={preparationDraftTitle(prepDraft, editingPrepIndex != null)} hint={prepDraft.step === "source" ? "选择前排从者或御主礼装" : prepDraft.step === "option" ? "选择技能" : prepDraft.step === "target" ? "选择目标" : prepDraft.step === "orderChange" ? "从前排和后排各选择一名从者" : "选择技能选项"} onReselect={prepDraft.step === "option" && prepDraft.source !== "commandSpell" ? () => setPrepDraft({ step: "source" }) : undefined} onCancel={() => {setPrepDraft(null);setEditingPrepIndex(null);}} />}
             {!prepDraft ? (
               <div className="command-entry-actions">
                 <AddRowTrigger iconSize={16} transparentIconBackground onClick={() => setPrepDraft({ step: "source" })}>添加技能指令</AddRowTrigger>
@@ -865,7 +867,7 @@ export function BattleSceneBlock({
                   <MysticCodeChoice code={mysticCode} gender={mysticCodeGender} selected onClick={() => setPrepDraft({ step: "source" })} />
                 )}
                 {prepDraft.source === "commandSpell" && (
-                  <CommandSpellChoice gender={mysticCodeGender} selected onClick={() => setPrepDraft({ step: "source" })} />
+                  <CommandSpellChoice gender={mysticCodeGender} selected onClick={() => setPrepDraft({ step: "option", source: "commandSpell" })} />
                 )}
                 <div className="battle-option-group command-skill-options">
                   {prepDraft.source === "commandSpell"
