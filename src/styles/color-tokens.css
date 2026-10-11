@@ -2,7 +2,7 @@
    Color theme and light/dark appearance change values, never geometry. */
 :root,
 .radix-themes:where(.light, .light-theme) {
-  --mash-accent-rgb: 8 127 232;
+  --mash-accent-rgb: 120 82 199;
   --mash-opacity-background-ambient: .02;
   --mash-opacity-background-fade: .18;
   --mash-color-background-base: #FBFCFE;
@@ -19,13 +19,13 @@
   --mash-color-text-muted: #647180;
   --mash-color-text-disabled: #7D8792;
   --mash-color-text-inverse: #FFFFFF;
-  --mash-color-accent-default: #087FE8;
-  --mash-color-accent-hover: #066FCE;
-  --mash-color-accent-pressed: #075BAB;
+  --mash-color-accent-default: #7852C7;
+  --mash-color-accent-hover: #6843B6;
+  --mash-color-accent-pressed: #58369E;
   --mash-color-accent-muted: rgb(var(--mash-accent-rgb) / 0.7);
   --mash-color-accent-subtle: rgb(var(--mash-accent-rgb) / 0.06);
-  --mash-color-accent-foreground: #075BAB;
-  --mash-color-accent-label: #075BAB;
+  --mash-color-accent-foreground: #6843B6;
+  --mash-color-accent-label: #6843B6;
   --mash-color-border-default: #E1E5EA;
   --mash-color-border-subtle: #F0F2F5;
   --mash-color-border-strong: #C6CDD6;
@@ -101,6 +101,16 @@
 }
 
 /* A single accent palette, independent of the appearance preference. */
+:root[data-color-theme="blue"],
+:root[data-color-theme="blue"] .radix-themes {
+  --mash-accent-rgb: 8 127 232;
+  --mash-color-accent-default: #087FE8;
+  --mash-color-accent-hover: #066FCE;
+  --mash-color-accent-pressed: #075BAB;
+  --mash-color-accent-foreground: #075BAB;
+  --mash-color-accent-label: #075BAB;
+}
+
 :root[data-color-theme="violet"],
 :root[data-color-theme="violet"] .radix-themes {
   --mash-accent-rgb: 120 82 199;

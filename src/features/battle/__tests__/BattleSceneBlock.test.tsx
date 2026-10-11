@@ -875,9 +875,9 @@ describe("BattleSceneBlock staged action editor", () => {
     expect(children[2]).toHaveTextContent("释放");
     expect(children[3]).toHaveClass("battle-inline-skill-icon");
     expect(children[4]).toHaveTextContent("技能 1");
-    expect(children[5]).toHaveTextContent("给");
-    expect(children[6]).toHaveClass("battle-inline-face");
-    expect(children[7]).toHaveTextContent("乙");
+    expect(children[5]).toHaveClass("battle-inline-face");
+    expect(children[6]).toHaveTextContent("乙");
+    expect(summary?.querySelector(".command-row-outcome .battle-action-to")).toBeNull();
   });
 
   it("shows localized skill names on servant action summary icons", async () => {

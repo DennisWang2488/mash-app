@@ -277,7 +277,6 @@ function PreparationActionSummary({
       ) : (
         targetIndex != null && (
           <>
-            <span className="battle-action-to">给</span>
             <ServantInlineFace
               servant={partyServants[targetIndex] ?? null}
               index={targetIndex}

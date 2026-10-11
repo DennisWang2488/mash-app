@@ -44,3 +44,11 @@
 .add-row-trigger.is-icon-background-transparent:hover .add-row-trigger-icon {
   background: transparent;
 }
+
+.enemy-target-icon {
+  display: block;
+  flex-shrink: 0;
+  width: 32px;
+  height: 20px;
+  color: var(--blue-11);
+}

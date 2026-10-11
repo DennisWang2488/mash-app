@@ -50,6 +50,14 @@ are derived from, PaddleOCR resources:
 Model-specific provenance and redistribution terms should be rechecked against
 the source release whenever these files are replaced.
 
+## UI fonts
+
+- Fonts: IBM Plex Sans, Noto Sans SC, Cormorant Garamond
+- Distribution: Fontsource variable-font packages, bundled locally by Vite
+- Source: https://fontsource.org/
+- License: SIL Open Font License 1.1
+- Original copyright notices and license texts: `public/font-licenses/`
+
 ## Package dependencies
 
 Mash also uses third-party JavaScript, Rust, and Python packages. Exact resolved

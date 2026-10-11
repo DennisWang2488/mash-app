@@ -442,12 +442,16 @@
 }
 
 .command-workspace .grand-card-strategy-section.embedded .command-rule-actions > .rt-Button {
+  align-items: center;
   gap: 9px;
   padding: 0 3px;
   color: var(--blue-11);
+  line-height: 1;
 }
 
 .command-workspace .grand-card-strategy-section.embedded .command-rule-actions svg {
+  display: block;
+  flex-shrink: 0;
   width: 18px;
   height: 18px;
 }

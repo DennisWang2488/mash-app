@@ -2,6 +2,7 @@ import { BattleActorIcon } from "./BattleActorIcon";
 import { masterFacePath, type MysticCode } from "../../types/mysticCode";
 import type { MysticCodeGender } from "../../types/appUiSettings";
 import { convertFileSrc } from "../../tauri";
+import { EnemyTargetIcon } from "./EnemyTargetIcon";
 
 export function EnemyTargetActionSummary({ target, code, gender = "female", label }: {
   target: string | null;
@@ -16,6 +17,9 @@ export function EnemyTargetActionSummary({ target, code, gender = "female", labe
       <span className="battle-action-name">御主</span>
     </span>
     <span className="command-row-skill"><span className="command-row-skill-name" title="选择敌方目标">选择敌方目标</span></span>
-    <span className="command-row-outcome">{target ? target.replace("enemy_", "").padStart(2, "0") : "?"}</span>
+    <span className="command-row-outcome">
+      <EnemyTargetIcon target={target} />
+      <span>{target ? target.replace("enemy_", "").padStart(2, "0") : "?"}</span>
+    </span>
   </span>;
 }

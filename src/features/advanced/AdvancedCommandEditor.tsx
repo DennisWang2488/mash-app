@@ -272,7 +272,6 @@ function AdvancedPreparationActionSummary({
       ) : (
         targetIndex != null && (
           <>
-            <span className="battle-action-to">给</span>
             <AdvancedInlineFace
               servant={partyLineup[targetIndex] ?? null}
               index={targetIndex}

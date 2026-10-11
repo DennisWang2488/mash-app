@@ -1,0 +1,40 @@
+@import "@fontsource-variable/ibm-plex-sans/wght.css";
+@import "@fontsource-variable/noto-sans-sc/wght.css";
+@import "@fontsource-variable/cormorant-garamond/wght.css";
+
+/* Penpot typography B. Latin glyphs use Plex; Chinese falls back to Noto. */
+:root {
+  --mash-font-ui: "IBM Plex Sans Variable", "Noto Sans SC Variable", system-ui, sans-serif;
+  --mash-font-decorative: "Cormorant Garamond Variable", Georgia, serif;
+  --mash-font-numeric: var(--mash-font-ui);
+}
+
+/* Radix controls declare their own families rather than inheriting from root. */
+.radix-themes {
+  --default-font-family: var(--mash-font-ui);
+  --heading-font-family: var(--mash-font-ui);
+  --strong-font-family: var(--mash-font-ui);
+  --em-font-family: var(--mash-font-ui);
+  --quote-font-family: var(--mash-font-ui);
+}
+
+.home-menu-kicker {
+  font-family: var(--mash-font-decorative);
+}
+
+.home-action-number,
+.formation-slot-number,
+.support-settings-slot-number,
+.formation-levels,
+.support-settings-ce-count,
+.command-scene-controls > strong,
+.command-scene-controls > span,
+.command-step-node > span,
+.command-phase-header > small,
+.command-phase-header > div > strong,
+.battle-counter-value,
+.battle-recovery-counter-value,
+.battle-counter-progress {
+  font-family: var(--mash-font-numeric);
+  font-variant-numeric: lining-nums tabular-nums;
+}

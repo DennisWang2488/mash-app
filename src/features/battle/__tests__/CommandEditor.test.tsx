@@ -214,10 +214,12 @@ describe("CommandEditor pagination", () => {
       expect(rows[2].querySelector(".command-row-source")).toHaveTextContent("御主");
       expect(rows[2].querySelector(".command-row-skill")).toHaveTextContent("选择敌方目标");
       expect(rows[2].querySelector(".command-row-outcome")).toHaveTextContent("03");
+      expect(rows[2].querySelector(".command-row-outcome > :first-child")).toHaveClass("enemy-target-icon");
       for (const [index, name, filename] of [[3, "宝具解放", "skill_00601"], [4, "灵基修复", "skill_00600"]] as const) {
         expect(rows[index].querySelector(".command-row-skill")).toHaveTextContent(`释放${name}`);
         expect(rows[index].querySelector(".battle-inline-skill-icon img")).toHaveAttribute("src", `asset:///icons/${filename}.png`);
-        expect(rows[index].querySelector(".command-row-outcome")).toHaveTextContent("给甲");
+        expect(rows[index].querySelector(".command-row-outcome")).toHaveTextContent("甲");
+        expect(rows[index].querySelector(".command-row-outcome .battle-action-to")).toBeNull();
       }
       for (const gender of ["female", "male"] as const) {
         for (const selected of [true, false]) {
@@ -1591,7 +1593,7 @@ describe("CommandEditor pagination", () => {
     await selectPreparation();
 
     expect(await screen.findByLabelText(/^御主礼装 (?:释放 )?技能 1(?: |$)/)).toBeInTheDocument();
-    expect(screen.getByText("给")).toBeInTheDocument();
+    expect(screen.queryByText("给")).not.toBeInTheDocument();
     expect(screen.getAllByText("丁").length).toBeGreaterThan(0);
   });
 

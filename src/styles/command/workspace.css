@@ -36,6 +36,8 @@
   align-items: center;
   gap: 14px;
   text-align: left;
+  min-width: max-content;
+  white-space: nowrap;
   font-size: 10px;
   letter-spacing: 1.7px;
   color: var(--gray-11);
@@ -52,7 +54,8 @@
 
 .mystic-code-label::after {
   content: "";
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   height: 1px;
   background: var(--blue-6);
 }
@@ -463,11 +466,24 @@
 }
 
 .command-entry-actions .add-row-trigger-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 16px !important;
   height: 16px !important;
   flex-basis: 16px !important;
   background: none;
   border: 0;
+  color: var(--blue-9);
+  line-height: 0;
+}
+
+.command-entry-actions .add-row-trigger:hover .add-row-trigger-icon {
+  transform: none;
+}
+
+.command-entry-actions .add-row-trigger .rt-Text {
+  line-height: normal;
 }
 
 .command-workspace .battle-add-row {

@@ -148,11 +148,20 @@
 }
 
 .critical-priority-chain {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   min-height: 38px;
   padding: 0 13px;
   font: inherit;
   font-size: 13px;
   font-weight: 700;
+}
+
+.critical-priority-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
 }
 
 .critical-priority-chain.mighty {

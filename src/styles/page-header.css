@@ -53,7 +53,7 @@
 }
 
 .project-context-label {
-  font-family: "Cormorant Garamond", Georgia, serif;
+  font-family: var(--mash-font-ui);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 2.03px;
@@ -156,7 +156,7 @@
 
 .mash-page-title small {
   display: block;
-  font-family: "Cormorant Garamond", Georgia, serif;
+  font-family: var(--mash-font-ui);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 2.4px;
