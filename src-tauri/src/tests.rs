@@ -496,6 +496,46 @@ fn app_ui_settings_round_trip_battle_start_panel() {
 }
 
 #[test]
+fn app_color_theme_preserves_legacy_preferences_and_defaults_to_violet() {
+    let settings: AppUiSettings = serde_json::from_str(
+        r#"{"activeProjectId":"existing-project","theme":"dark","battleStartPanel":"runStatus"}"#,
+    )
+    .unwrap();
+    assert_eq!(settings.color_theme, crate::paths::AppColorTheme::Violet);
+    assert_eq!(settings.active_project_id.as_deref(), Some("existing-project"));
+    assert_eq!(settings.theme.as_deref(), Some("dark"));
+    assert_eq!(settings.battle_start_panel, BattleStartPanel::RunStatus);
+}
+
+#[test]
+fn app_color_themes_round_trip_on_disk_with_camel_case_wire_name() {
+    use crate::paths::AppColorTheme;
+    let tmp = tempfile::tempdir().unwrap();
+    let path = tmp.path().join("app_ui_settings.json");
+    for (color_theme, wire_value) in [
+        (AppColorTheme::Blue, "blue"),
+        (AppColorTheme::Violet, "violet"),
+        (AppColorTheme::Gold, "gold"),
+    ] {
+        let settings = AppUiSettings {
+            color_theme,
+            theme: Some("dark".into()),
+            active_project_id: Some("existing-project".into()),
+            ..Default::default()
+        };
+        write_app_ui_settings_to_path(&path, &settings).unwrap();
+        let json: serde_json::Value =
+            serde_json::from_str(&fs::read_to_string(&path).unwrap()).unwrap();
+        assert_eq!(json["colorTheme"], wire_value);
+        let saved = read_app_ui_settings_from_path(&path).unwrap();
+        assert_eq!(saved.color_theme, color_theme);
+        assert_eq!(saved.theme.as_deref(), Some("dark"));
+        assert_eq!(saved.active_project_id.as_deref(), Some("existing-project"));
+    }
+    assert!(serde_json::from_str::<AppColorTheme>(r#""neon""#).is_err());
+}
+
+#[test]
 fn app_ui_settings_round_trip_home_master_figure_id() {
     let tmp = tempfile::tempdir().unwrap();
     let path = tmp.path().join("app_ui_settings.json");

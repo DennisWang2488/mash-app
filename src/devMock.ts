@@ -1,11 +1,15 @@
+import { commandEditorDevBridge } from "./commandEditorDevMock";
 import { createInitialProjectSlots } from "./features/team/projectSlots";
 import type { AdvancedBattleScene, BattleScene } from "./types/command";
 import type { CraftEssence } from "./types/craftEssence";
 import type { Project, ProjectCatalog } from "./types/project";
 import type { Servant } from "./types/servant";
 import type { Server } from "./types/server";
+import { isAppColorTheme, type AppColorTheme } from "./types/theme";
 
 type InvokeArgs = Record<string, unknown>;
+// Explicit browser preview only; native runtime and asset checks are unchanged.
+const commandPreview = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("preview") === "commands";
 
 const servants: Servant[] = [
   {
@@ -109,6 +113,7 @@ let nextProjectNumber = 2;
 let nextProjectGroupNumber = 1;
 let activeProjectId: string | null = "dev-project-1";
 let appTheme: "light" | "dark" | "system" | null = null;
+let appColorTheme: AppColorTheme = "violet";
 let battleStartPanel: "operationLog" | "runStatus" | "none" = "operationLog";
 
 let projects: Project[] = [
@@ -255,7 +260,7 @@ function debugSettings() {
   };
 }
 
-export async function invokeDevMock<T>(cmd: string, args: InvokeArgs = {}): Promise<T> {
+async function invokeLegacyDevMock<T>(cmd: string, args: InvokeArgs = {}): Promise<T> {
   switch (cmd) {
     case "run_startup_migration":
       return { migrated: false, from: null, to: "/dev/mash-app-data" } as T;
@@ -374,6 +379,12 @@ export async function invokeDevMock<T>(cmd: string, args: InvokeArgs = {}): Prom
         appTheme = args.theme;
       }
       return null as T;
+    case "get_app_color_theme":
+      return appColorTheme as T;
+    case "set_app_color_theme":
+      if (!isAppColorTheme(args.value)) throw new Error("无效的主题配色");
+      appColorTheme = args.value;
+      return appColorTheme as T;
     case "get_mystic_code_gender":
       return mysticCodeGender as T;
     case "set_mystic_code_gender":
@@ -660,15 +671,21 @@ export async function invokeDevMock<T>(cmd: string, args: InvokeArgs = {}): Prom
       return null as T;
     case "get_skill_icon_paths":
       return [{ path: null, name: "" }, { path: null, name: "" }, { path: null, name: "" }] as T;
+    case "get_append_skill_icon_paths":
+      return Array.from({ length: 5 }, () => ({ path: null, name: "" })) as T;
+    case "get_command_spell_icon_paths":
+      return [{ path: null, name: "宝具解放" }, { path: null, name: "灵基修复" }] as T;
+    case "get_attack_card_icon_paths":
+      return ["宝具", "红卡", "蓝卡", "绿卡", "任意"].map(name => ({ path: null, name })) as T;
     case "get_runtime_status":
       return {
         requiredRuntimeVersion: "2026.05.08-runtime1",
         installedRuntimeVersion: null,
-        runtimeInstalled: false,
+        runtimeInstalled: commandPreview,
         requiredCodeVersion: "2026.05.08-code1",
         installedCodeVersion: null,
-        codeInstalled: false,
-        installed: false,
+        codeInstalled: commandPreview,
+        installed: commandPreview,
         platform: "darwin-aarch64",
         runtimeDownloadUrl:
           "https://cdn.example.com/mash-cv-runtime-darwin-aarch64-v2026.05.08-runtime1.zip",
@@ -685,7 +702,7 @@ export async function invokeDevMock<T>(cmd: string, args: InvokeArgs = {}): Prom
       } as T;
     case "get_asset_bundle_status":
       return {
-        installed: false,
+        installed: commandPreview,
         importedServants: false,
         importedCraftEssences: false,
         servantFiles: 0,
@@ -808,3 +825,6 @@ export async function invokeDevMock<T>(cmd: string, args: InvokeArgs = {}): Prom
       throw new Error(`开发模式暂未模拟 Tauri 命令：${cmd}`);
   }
 }
+
+const editorDevInvoke = commandEditorDevBridge(invokeLegacyDevMock);
+export async function invokeDevMock<T>(command: string, args: InvokeArgs = {}): Promise<T> {return await editorDevInvoke(command,args) as T;}

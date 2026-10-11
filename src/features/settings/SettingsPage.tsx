@@ -1,16 +1,12 @@
-import { useCallback, useState } from "react";
-import { Box, Button, Dialog, Flex, IconButton, Text } from "@radix-ui/themes";
-import {
-  ArchiveIcon,
-  CheckCircledIcon,
-  Cross1Icon,
-  GearIcon,
-  MixerHorizontalIcon,
-} from "@radix-ui/react-icons";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Box, Button, Text } from "@radix-ui/themes";
+import { PageHeader } from "../../components/common/PageHeader";
+import { SectionHeading } from "../../components/common/SectionHeading";
 import { invoke } from "../../tauri";
 import { featureToggles } from "../../featureToggles";
 import type { BattleStartPanel, MysticCodeGender } from "../../types/appUiSettings";
 import type { Project } from "../../types/project";
+import type { AppColorTheme } from "../../types/theme";
 import { SettingsDataManagementPage } from "./SettingsDataManagementPage";
 import { SettingsBasicPage } from "./SettingsBasicPage";
 import { SettingsRecognitionPage } from "./SettingsRecognitionPage";
@@ -26,7 +22,7 @@ export type SettingsSection =
   | "recognition"
   | "debug";
 
-interface SettingsDialogProps {
+interface SettingsPageProps {
   open: boolean;
   section: SettingsSection;
   onOpenChange: (open: boolean) => void;
@@ -35,11 +31,15 @@ interface SettingsDialogProps {
   onBattleStartPanelChange?: (value: BattleStartPanel) => void;
   mysticCodeGender?: MysticCodeGender;
   onMysticCodeGenderChange?: (value: MysticCodeGender) => void;
+  colorTheme?: AppColorTheme;
+  colorThemeError?: string;
+  onColorThemeReload?: () => Promise<void>;
+  onColorThemeChange?: (value: AppColorTheme) => Promise<void>;
 }
 
 type SettingsRenderProps = Pick<
-  SettingsDialogProps,
-  "onProjectsImported" | "onBattleStartPanelChange" | "mysticCodeGender" | "onMysticCodeGenderChange"
+  SettingsPageProps,
+  "onProjectsImported" | "onBattleStartPanelChange" | "mysticCodeGender" | "onMysticCodeGenderChange" | "colorTheme" | "onColorThemeChange" | "colorThemeError" | "onColorThemeReload"
 > & {
   onResourcesExitBlockedChange: (blocked: boolean) => void;
 };
@@ -48,17 +48,19 @@ const navItems: Array<{
   group: "game" | "application";
   section: SettingsSection;
   label: string;
-  icon: JSX.Element;
   render: (active: boolean, props: SettingsRenderProps) => JSX.Element;
 }> = [
   {
     group: "game",
     section: "basic",
     label: "基础设置",
-    icon: <GearIcon width={15} height={15} />,
     render: (active, props) => (
       <SettingsBasicPage
         active={active}
+        colorTheme={props.colorTheme}
+        colorThemeError={props.colorThemeError}
+        onColorThemeReload={props.onColorThemeReload}
+        onColorThemeChange={props.onColorThemeChange}
         onBattleStartPanelChange={props.onBattleStartPanelChange}
         mysticCodeGender={props.mysticCodeGender}
         onMysticCodeGenderChange={props.onMysticCodeGenderChange}
@@ -69,14 +71,12 @@ const navItems: Array<{
     group: "game",
     section: "recognition",
     label: "阈值设置",
-    icon: <MixerHorizontalIcon width={15} height={15} />,
     render: (active) => <SettingsRecognitionPage active={active} />,
   },
   {
     group: "game",
     section: "dataManagement",
     label: "队伍管理",
-    icon: <ArchiveIcon width={15} height={15} />,
     render: (_active, props) => (
       <SettingsDataManagementPage onProjectsImported={props.onProjectsImported} />
     ),
@@ -85,14 +85,12 @@ const navItems: Array<{
     group: "application",
     section: "debug",
     label: "调试",
-    icon: <GearIcon width={15} height={15} />,
     render: (active) => <SettingsDebugPage active={active} />,
   },
   {
     group: "application",
     section: "resources",
     label: "资源管理",
-    icon: <ArchiveIcon width={15} height={15} />,
     render: (_active, props) => (
       <SettingsResourcesPage onExitBlockedChange={props.onResourcesExitBlockedChange} />
     ),
@@ -101,7 +99,6 @@ const navItems: Array<{
     group: "application",
     section: "selfCheck",
     label: "软件自检",
-    icon: <CheckCircledIcon width={15} height={15} />,
     render: (active) => <SettingsSelfCheckPage active={active} />,
   },
 ];
@@ -110,7 +107,7 @@ function visibleNavItems() {
   return navItems.filter((item) => item.section !== "debug" || featureToggles.settingsDebug);
 }
 
-export function SettingsDialog({
+export function SettingsPage({
   open,
   section,
   onOpenChange,
@@ -119,8 +116,13 @@ export function SettingsDialog({
   onBattleStartPanelChange,
   mysticCodeGender,
   onMysticCodeGenderChange,
-}: SettingsDialogProps) {
+  colorTheme,
+  colorThemeError,
+  onColorThemeReload,
+  onColorThemeChange,
+}: SettingsPageProps) {
   const [resourcesExitBlocked, setResourcesExitBlocked] = useState(false);
+  const pageRef = useRef<HTMLElement>(null);
   const items = visibleNavItems();
   const activeItem = items.find((item) => item.section === section) ?? items[0];
   const activeSection = activeItem.section;
@@ -141,85 +143,68 @@ export function SettingsDialog({
     onOpenChange(nextOpen);
   }, [onOpenChange, resourcesExitBlocked, section]);
 
+  useEffect(() => {
+    if (!open) return;
+    const previousFocus = document.activeElement;
+    pageRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    return () => {
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      // Child menus/dialogs own their Escape key before it reaches this page.
+      if (event.key === "Escape" && !event.defaultPrevented) handleOpenChange(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, handleOpenChange]);
+
+  if (!open) return null;
+
   return (
-    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
-      <Dialog.Content className="settings-dialog">
-        <Flex className="settings-shell">
-          <Flex asChild direction="column" className="settings-nav">
-            <nav aria-label="设置导航">
-              <Box className="settings-nav-title">
-                <Dialog.Title size="4">设置</Dialog.Title>
-              </Box>
-              <Flex direction="column" gap="4">
-                {groupedItems.map((group) => (
-                  <Flex key={group.group} direction="column" gap="3" className="settings-nav-group">
-                    <Text size="1" weight="bold" color="gray" className="settings-nav-group-label">
-                      {group.label}
-                    </Text>
-                    {items
-                      .filter((item) => item.group === group.group)
-                      .map((item) => (
-                        <Button
-                          key={item.section}
-                          type="button"
-                          variant="ghost"
-                          color="gray"
-                          data-active={activeSection === item.section ? "true" : undefined}
-                          aria-current={activeSection === item.section ? "page" : undefined}
-                          disabled={
-                            activeSection === "resources" &&
-                            resourcesExitBlocked &&
-                            item.section !== "resources"
-                          }
-                          onClick={() => onSectionChange(item.section)}
-                          className="settings-nav-button"
-                        >
-                          {item.icon}
-                          <Text size="2" weight="medium">
-                            {item.label}
-                          </Text>
-                        </Button>
-                      ))}
-                  </Flex>
-                ))}
-              </Flex>
-            </nav>
-          </Flex>
-
-          <Flex direction="column" className="settings-content">
-            <Flex align="center" className="settings-content-header">
-              <Flex align="center" className="settings-content-header-inner">
-                <Text size="5" weight="bold">
-                  {activeItem.label}
-                </Text>
-              </Flex>
-              <Dialog.Close>
-                <IconButton
-                  type="button"
-                  variant="ghost"
-                  color="gray"
-                  aria-label="关闭设置"
-                  disabled={activeSection === "resources" && resourcesExitBlocked}
-                >
-                  <Cross1Icon width={15} height={15} />
-                </IconButton>
-              </Dialog.Close>
-            </Flex>
-
-            <Box className="settings-content-scroll">
-              <Box className="settings-content-body">
-                {activeItem.render(open && activeItem.section === activeSection, {
-                  onProjectsImported,
-                  onBattleStartPanelChange,
-                  mysticCodeGender,
-                  onMysticCodeGenderChange,
-                  onResourcesExitBlockedChange: setResourcesExitBlocked,
-                })}
-              </Box>
-            </Box>
-          </Flex>
-        </Flex>
-      </Dialog.Content>
-    </Dialog.Root>
+    <main ref={pageRef} className="settings-page" aria-label="设置">
+      <PageHeader title="设置" english="SETTINGS" onBack={() => handleOpenChange(false)}
+        backLabel="关闭设置" backDisabled={activeSection === "resources" && resourcesExitBlocked}>
+        {null}
+      </PageHeader>
+      <div className="settings-page-layout">
+        <nav className="settings-page-nav" aria-label="设置导航">
+          {groupedItems.map((group) => (
+            <div key={group.group} className="settings-page-nav-group">
+              <Text className="settings-page-nav-label">
+                <span aria-hidden="true">{group.group === "game" ? "GAME / " : "APP / "}</span><span>{group.label}</span>
+              </Text>
+              {items.filter((item) => item.group === group.group).map((item) => (
+                <Button key={item.section} type="button" variant="ghost" color="gray"
+                  className="settings-page-nav-button"
+                  data-active={activeSection === item.section ? "true" : undefined}
+                  aria-current={activeSection === item.section ? "page" : undefined}
+                  disabled={activeSection === "resources" && resourcesExitBlocked && item.section !== "resources"}
+                  onClick={() => onSectionChange(item.section)}>
+                  {item.label}
+                </Button>
+              ))}
+            </div>
+          ))}
+        </nav>
+        <div className="settings-page-scroll" key={activeSection} tabIndex={0}
+          role="region" aria-label={`${activeItem.label}内容`}>
+          <Box className="settings-page-body">
+            <SectionHeading className="settings-page-section-title" english={
+              { basic: "GENERAL", recognition: "RECOGNITION", dataManagement: "PARTY", debug: "DEBUG", resources: "RESOURCES", selfCheck: "SELF CHECK" }[activeSection]
+            } stacked rail>{activeItem.label}</SectionHeading>
+            {activeItem.render(open, {
+              onProjectsImported, onBattleStartPanelChange, mysticCodeGender,
+              colorTheme, onColorThemeChange,
+              colorThemeError, onColorThemeReload,
+              onMysticCodeGenderChange, onResourcesExitBlockedChange: setResourcesExitBlocked,
+            })}
+          </Box>
+        </div>
+      </div>
+    </main>
   );
 }

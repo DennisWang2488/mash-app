@@ -80,6 +80,25 @@ pub(crate) fn set_app_theme(
 }
 
 #[tauri::command]
+pub(crate) fn get_app_color_theme(
+    state: tauri::State<'_, Mutex<AppUiSettings>>,
+) -> Result<crate::paths::AppColorTheme, String> {
+    Ok(state.lock().map_err(|err| err.to_string())?.color_theme)
+}
+
+#[tauri::command]
+pub(crate) fn set_app_color_theme(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, Mutex<AppUiSettings>>,
+    value: crate::paths::AppColorTheme,
+) -> Result<crate::paths::AppColorTheme, String> {
+    let saved = update_app_ui_settings(&app, state.inner(), |settings| {
+        settings.color_theme = value;
+    })?;
+    Ok(saved.color_theme)
+}
+
+#[tauri::command]
 pub(crate) fn get_battle_start_panel(
     state: tauri::State<'_, Mutex<AppUiSettings>>,
 ) -> crate::paths::BattleStartPanel {

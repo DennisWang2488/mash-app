@@ -1,5 +1,6 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { invoke } from "@tauri-apps/api/core";
 import { renderWithTheme } from "../../../test/renderWithTheme";
 import type { Servant } from "../../../types/servant";
 import type { PartyMember } from "../../team/partyServants";
@@ -95,5 +96,49 @@ describe("CriticalStrategyEditor", () => {
 
     expect(screen.getByRole("button", { name: /从者三，拖动调整优先级/ })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /后排从者，拖动调整优先级/ })).not.toBeInTheDocument();
+  });
+
+  it("uses the normal attack icons for each chain even when priorities are reordered", async () => {
+    const imageSpy = vi.spyOn(window, "Image").mockImplementation(function () {
+      const image = document.createElement("img");
+      Object.defineProperties(image, { complete: { value: true }, naturalWidth: { value: 100 } });
+      return image;
+    });
+    try {
+      const filenames = ["skill_00601", "skill_00306", "skill_00305", "skill_00304", "skill_00317"];
+      vi.mocked(invoke).mockImplementation(async command => command === "get_attack_card_icon_paths"
+        ? filenames.map(filename => ({ path: `/icons/${filename}.png`, name: filename })) : null);
+      renderWithTheme(
+        <CriticalStrategyEditor partyMembers={members} faces={{}} onChange={vi.fn()}
+          strategy={{ memberPriority: [], chainPriority: ["quick", "mighty", "arts", "buster"] }} />
+      );
+
+      await waitFor(() => {
+        for (const [label, filename] of [
+          ["精湛连携", "skill_00317"],
+          ["力击连携", "skill_00306"],
+          ["技击连携", "skill_00305"],
+          ["迅击连携", "skill_00304"],
+        ]) {
+          const button = screen.getByRole("button", { name: `${label}，拖动调整优先级` });
+          expect(within(button).getByRole("img", { name: label }))
+            .toHaveAttribute("src", `asset:///icons/${filename}.png`);
+        }
+      });
+    } finally {
+      imageSpy.mockRestore();
+    }
+  });
+
+  it("keeps the chain labels and placeholders when resources cannot be loaded", async () => {
+    vi.mocked(invoke).mockRejectedValueOnce(new Error("Missing attack icons"));
+    renderWithTheme(<CriticalStrategyEditor partyMembers={members} faces={{}} onChange={vi.fn()} />);
+
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith("get_attack_card_icon_paths"));
+    for (const label of ["精湛连携", "力击连携", "技击连携", "迅击连携"]) {
+      const button = screen.getByRole("button", { name: `${label}，拖动调整优先级` });
+      expect(button).toHaveTextContent(label);
+      expect(button.querySelector(".rt-AvatarFallback")).toHaveTextContent(label.slice(0, 1));
+    }
   });
 });

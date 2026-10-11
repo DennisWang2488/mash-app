@@ -8,6 +8,7 @@ interface FeatureToggleEnv {
   VITE_FEATURE_GRAND_CARD_PRIORITY?: string;
   VITE_FEATURE_TURN_ATTACK_MODES?: string;
   VITE_FEATURE_AUTO_FRIEND_REQUEST?: string;
+  VITE_FEATURE_TILTED_STAR_ORBITS_BACKGROUND?: string;
 }
 
 export interface FeatureToggles {
@@ -20,6 +21,7 @@ export interface FeatureToggles {
   turnAttackModes: boolean;
   settingsDebug: boolean;
   autoFriendRequest: boolean;
+  tiltedStarOrbitsBackground: boolean;
 }
 
 function envFlag(value: string | undefined, fallback: boolean): boolean {
@@ -48,6 +50,7 @@ export function createFeatureToggles(env: FeatureToggleEnv): FeatureToggles {
     turnAttackModes: envFlag(env.VITE_FEATURE_TURN_ATTACK_MODES, true),
     settingsDebug: env.DEV,
     autoFriendRequest: envFlag(env.VITE_FEATURE_AUTO_FRIEND_REQUEST, false),
+    tiltedStarOrbitsBackground: envFlag(env.VITE_FEATURE_TILTED_STAR_ORBITS_BACKGROUND, true),
   };
 }
 

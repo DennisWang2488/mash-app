@@ -3,6 +3,7 @@ import type {
   AttackCard,
   BattleTurn,
   OrderChangeSelection,
+  PreparationAction,
   SkillSelection,
   SkillSelectionType,
 } from "../../types/command";
@@ -39,6 +40,29 @@ export type AttackDraft =
   | { step: "source"; targetIndex: number | null }
   | { step: "option"; source: AttackSource; targetIndex: number | null };
 
+export function preparationEditDraft(action: PreparationAction): PrepDraft {
+  if (action.type === "commandSpell") {
+    return { step: "option", source: "commandSpell" };
+  }
+  if (action.type === "enemyTarget") {
+    return { step: "target", source: "enemyTarget", option: "select" };
+  }
+  return { step: "source" };
+}
+
+export function preparationDraftTitle(
+  draft: { step: PrepDraft["step"]; source?: PrepSource | PartySlot },
+  editing: boolean,
+): string {
+  if (draft.step !== "source" && draft.source === "enemyTarget") {
+    return editing ? "编辑敌方目标" : "选择敌方目标";
+  }
+  if (draft.step !== "source" && draft.source === "commandSpell") {
+    return editing ? "编辑令咒" : "使用令咒";
+  }
+  return editing ? "编辑技能指令" : "添加技能指令";
+}
+
 export const FIXED_ATTACK_CARD_COUNT = 3;
 
 export const SKILLS = ["skill_1", "skill_2", "skill_3"] as const;
@@ -55,10 +79,10 @@ export const COMMAND_SPELL_LABELS: Record<string, string> = {
 
 export const ATTACK_OPTIONS = [
   { value: "np", label: "宝具" },
-  { value: "buster", label: "B" },
-  { value: "arts", label: "A" },
-  { value: "quick", label: "Q" },
-  { value: "all", label: "ALL" },
+  { value: "buster", label: "红卡" },
+  { value: "arts", label: "蓝卡" },
+  { value: "quick", label: "绿卡" },
+  { value: "all", label: "任意" },
 ] as const;
 
 export const ENEMY_TARGETS = [

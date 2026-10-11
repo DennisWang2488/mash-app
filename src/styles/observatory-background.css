@@ -1,0 +1,78 @@
+/* Penpot geometry is a neutral mask; CSS applies theme color/alpha once. */
+.observatory-background {
+  --observatory-lines: url("../components/common/assets/observatory-lines.svg");
+  --observatory-nodes: url("../components/common/assets/observatory-nodes.svg");
+  position: absolute;
+  inset: 0 0 28px;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  background: var(--mash-color-background-base);
+}
+
+.observatory-background > div {
+  position: absolute;
+  inset: 0;
+}
+
+.observatory-background-ambient {
+  background: radial-gradient(ellipse at 78% 18%, rgb(var(--mash-accent-rgb) / var(--mash-opacity-background-ambient)), transparent 64%);
+}
+
+.observatory-background-grid {
+  background-image:
+    linear-gradient(var(--mash-color-grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--mash-color-grid-major) 1px, transparent 1px),
+    linear-gradient(var(--mash-color-grid-minor) 1px, transparent 1px),
+    linear-gradient(90deg, var(--mash-color-grid-minor) 1px, transparent 1px);
+  background-size: 128px 128px, 128px 128px, 32px 32px, 32px 32px;
+}
+
+.observatory-background-lines {
+  background: var(--mash-color-geometry-background);
+  -webkit-mask: var(--observatory-lines) center / cover no-repeat;
+  mask: var(--observatory-lines) center / cover no-repeat;
+}
+
+.observatory-background-nodes {
+  background: var(--mash-color-geometry-node);
+  -webkit-mask: var(--observatory-nodes) center / cover no-repeat;
+  mask: var(--observatory-nodes) center / cover no-repeat;
+}
+
+.observatory-background-fade {
+  background: radial-gradient(ellipse at 50% 42%, var(--mash-color-background-base), transparent 72%);
+  opacity: var(--mash-opacity-background-fade);
+}
+
+.observatory-background[data-density="minimal"] :is(.observatory-background-lines, .observatory-background-nodes) {
+  opacity: .35;
+}
+
+.observatory-background[data-density="minimal"] .observatory-background-fade {
+  opacity: .75;
+}
+
+.observatory-background[data-composition="home"] {
+  --observatory-lines: url("../components/common/assets/home-observatory-lines.svg");
+  --observatory-nodes: url("../components/common/assets/home-observatory-nodes.svg");
+}
+
+.observatory-background[data-composition="tilted-star-orbits"] {
+  --observatory-lines: url("../components/common/assets/tilted-star-orbits-lines.svg");
+  --observatory-nodes: url("../components/common/assets/tilted-star-orbits-nodes.svg");
+}
+
+.observatory-background:is([data-composition="home"], [data-composition="tilted-star-orbits"]) .observatory-background-grid {
+  display: none;
+}
+
+/* Pages share the scene below them instead of covering it with another grid. */
+.app-root .formation-stage,
+.app-root .command-stage,
+.app-root .battle-page,
+.app-root .settings-page,
+.app-root .home-page {
+  background: transparent;
+}

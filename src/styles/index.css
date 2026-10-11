@@ -1,7 +1,9 @@
 @import "./base.css";
+@import "./typography.css";
 @import "./components.css";
 @import "./layout.css";
 @import "./settings.css";
+@import "./diamond-switch.css";
 @import "./project.css";
 @import "./home.css";
 @import "./team/index.css";
@@ -11,3 +13,10 @@
 @import "./status-and-battle.css";
 @import "./debug.css";
 @import "./rank-up-quest.css";
+@import "./command/index.css";
+@import "./page-header.css";
+@import "./workspace-page.css";
+@import "./run-settings/index.css";
+@import "./task-action-button.css";
+@import "./color-tokens.css";
+@import "./observatory-background.css";

@@ -156,6 +156,8 @@ pub(crate) struct AppUiSettings {
     #[serde(default)]
     pub(crate) theme: Option<String>,
     #[serde(default)]
+    pub(crate) color_theme: AppColorTheme,
+    #[serde(default)]
     pub(crate) battle_start_panel: BattleStartPanel,
     /// Global portrait selections keyed by `variantKey`. When present, the
     /// chosen portrait id overrides the default "highest ascension" pick for
@@ -166,6 +168,15 @@ pub(crate) struct AppUiSettings {
     pub(crate) mystic_code_gender: MysticCodeGender,
     #[serde(default)]
     pub(crate) home_master_figure_id: Option<u32>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub(crate) enum AppColorTheme {
+    Blue,
+    #[default]
+    Violet,
+    Gold,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]

@@ -1,0 +1,413 @@
+/* Semantic roles from Penpot: color.*. All components share the same roles.
+   Color theme and light/dark appearance change values, never geometry. */
+:root,
+.radix-themes:where(.light, .light-theme) {
+  --mash-accent-rgb: 120 82 199;
+  --mash-opacity-background-ambient: .02;
+  --mash-opacity-background-fade: .18;
+  --mash-color-background-base: #FBFCFE;
+  --mash-color-background-subtle: #F5F8FC;
+  --mash-color-background-elevated: #FFFFFF;
+  --mash-color-surface-default: #FFFFFF;
+  --mash-color-surface-subtle: #F7F9FC;
+  --mash-color-surface-hover: rgb(var(--mash-accent-rgb) / 0.04);
+  --mash-color-surface-pressed: rgb(var(--mash-accent-rgb) / 0.09);
+  --mash-color-surface-selected: rgb(var(--mash-accent-rgb) / 0.07);
+  --mash-color-surface-disabled: #F0F2F5;
+  --mash-color-text-primary: #1F2933;
+  --mash-color-text-secondary: #4B5563;
+  --mash-color-text-muted: #647180;
+  --mash-color-text-disabled: #7D8792;
+  --mash-color-text-inverse: #FFFFFF;
+  --mash-color-accent-default: #7852C7;
+  --mash-color-accent-hover: #6843B6;
+  --mash-color-accent-pressed: #58369E;
+  --mash-color-accent-muted: rgb(var(--mash-accent-rgb) / 0.7);
+  --mash-color-accent-subtle: rgb(var(--mash-accent-rgb) / 0.06);
+  --mash-color-accent-foreground: #6843B6;
+  --mash-color-accent-label: #6843B6;
+  --mash-color-border-default: #E1E5EA;
+  --mash-color-border-subtle: #F0F2F5;
+  --mash-color-border-strong: #C6CDD6;
+  --mash-color-border-focus: var(--mash-color-accent-default);
+  --mash-color-axis-default: rgb(var(--mash-accent-rgb) / 0.3);
+  --mash-color-axis-subtle: rgb(var(--mash-accent-rgb) / 0.2);
+  --mash-color-axis-hover: rgb(var(--mash-accent-rgb) / 0.55);
+  --mash-color-node-default: rgb(var(--mash-accent-rgb) / 0.7);
+  --mash-color-node-active: var(--mash-color-accent-default);
+  --mash-color-node-subtle: rgb(var(--mash-accent-rgb) / 0.4);
+  --mash-color-grid-minor: rgb(var(--mash-accent-rgb) / 0.035);
+  --mash-color-grid-major: rgb(var(--mash-accent-rgb) / 0.065);
+  --mash-color-geometry-background: rgb(var(--mash-accent-rgb) / 0.05);
+  --mash-color-geometry-node: rgb(var(--mash-accent-rgb) / 0.12);
+  --mash-color-state-selected: var(--mash-color-accent-default);
+  --mash-color-state-focus: var(--mash-color-accent-default);
+  --mash-color-state-disabled: #7D8792;
+  --mash-color-status-success: #247A50;
+  --mash-color-status-warning: #985A13;
+  --mash-color-status-danger: #C43E48;
+  --mash-color-status-info: var(--mash-color-accent-default);
+  --mash-color-overlay-scrim: rgba(23,32,42,0.22);
+}
+
+:root[data-theme="dark"],
+.radix-themes:is(.dark, .dark-theme) {
+  --mash-accent-rgb: 167 139 250;
+  --mash-opacity-background-ambient: .04;
+  --mash-opacity-background-fade: .08;
+  --mash-color-background-base: #121316;
+  --mash-color-background-subtle: #16181C;
+  --mash-color-background-elevated: #272A30;
+  --mash-color-surface-default: #1A1C21;
+  --mash-color-surface-subtle: #202329;
+  --mash-color-surface-disabled: #181B20;
+  --mash-color-text-primary: #F0F2F5;
+  --mash-color-text-secondary: #B6BEC9;
+  --mash-color-text-muted: #969FAB;
+  --mash-color-text-disabled: #68717F;
+  --mash-color-text-inverse: var(--mash-color-background-base);
+  --mash-color-accent-label: var(--mash-color-text-muted);
+  --mash-color-border-default: rgba(255,255,255,0.09);
+  --mash-color-border-subtle: rgba(255,255,255,0.05);
+  --mash-color-border-strong: rgba(255,255,255,0.18);
+  --mash-color-state-disabled: #68717F;
+  --mash-color-status-success: #69C49A;
+  --mash-color-status-warning: #DDA65B;
+  --mash-color-status-danger: #EE8187;
+  --mash-color-overlay-scrim: rgba(3,4,6,0.48);
+  --mash-color-surface-hover: rgb(var(--mash-accent-rgb) / 0.04);
+  --mash-color-surface-pressed: rgb(var(--mash-accent-rgb) / 0.09);
+  --mash-color-surface-selected: rgb(var(--mash-accent-rgb) / 0.06);
+  --mash-color-accent-default: #A78BFA;
+  --mash-color-accent-hover: #BEA7FF;
+  --mash-color-accent-pressed: #8F6AE6;
+  --mash-color-accent-muted: rgb(var(--mash-accent-rgb) / 0.7);
+  --mash-color-accent-subtle: rgb(var(--mash-accent-rgb) / 0.08);
+  --mash-color-accent-foreground: var(--mash-color-accent-default);
+  --mash-color-axis-default: rgb(var(--mash-accent-rgb) / 0.25);
+  --mash-color-axis-subtle: rgb(var(--mash-accent-rgb) / 0.15);
+  --mash-color-axis-hover: rgb(var(--mash-accent-rgb) / 0.55);
+  --mash-color-node-default: rgb(var(--mash-accent-rgb) / 0.45);
+  --mash-color-node-active: var(--mash-color-accent-default);
+  --mash-color-node-subtle: rgb(var(--mash-accent-rgb) / 0.35);
+  --mash-color-grid-minor: rgb(var(--mash-accent-rgb) / 0.04);
+  --mash-color-grid-major: rgb(var(--mash-accent-rgb) / 0.07);
+  --mash-color-geometry-background: rgb(var(--mash-accent-rgb) / 0.06);
+  --mash-color-geometry-node: rgb(var(--mash-accent-rgb) / 0.1);
+  --mash-color-border-focus: var(--mash-color-accent-default);
+  --mash-color-state-selected: var(--mash-color-accent-default);
+  --mash-color-state-focus: var(--mash-color-accent-default);
+  --mash-color-status-info: var(--mash-color-accent-default);
+}
+
+/* A single accent palette, independent of the appearance preference. */
+:root[data-color-theme="blue"],
+:root[data-color-theme="blue"] .radix-themes {
+  --mash-accent-rgb: 8 127 232;
+  --mash-color-accent-default: #087FE8;
+  --mash-color-accent-hover: #066FCE;
+  --mash-color-accent-pressed: #075BAB;
+  --mash-color-accent-foreground: #075BAB;
+  --mash-color-accent-label: #075BAB;
+}
+
+:root[data-color-theme="violet"],
+:root[data-color-theme="violet"] .radix-themes {
+  --mash-accent-rgb: 120 82 199;
+  --mash-color-accent-default: #7852C7;
+  --mash-color-accent-hover: #6843B6;
+  --mash-color-accent-pressed: #58369E;
+  --mash-color-accent-foreground: #6843B6;
+  --mash-color-accent-label: #6843B6;
+}
+
+:root[data-color-theme="gold"],
+:root[data-color-theme="gold"] .radix-themes {
+  --mash-accent-rgb: 135 100 35;
+  --mash-color-accent-default: #876423;
+  --mash-color-accent-hover: #77551C;
+  --mash-color-accent-pressed: #654717;
+  --mash-color-accent-foreground: #77551C;
+  --mash-color-accent-label: #77551C;
+}
+
+:root[data-theme="dark"][data-color-theme="blue"],
+:root[data-color-theme="blue"] .radix-themes:is(.dark, .dark-theme) {
+  --mash-accent-rgb: 61 156 255;
+  --mash-color-accent-default: #3D9CFF;
+  --mash-color-accent-hover: #2088F2;
+  --mash-color-accent-pressed: #2B8ADF;
+}
+
+:root[data-theme="dark"][data-color-theme="violet"],
+:root[data-color-theme="violet"] .radix-themes:is(.dark, .dark-theme) {
+  --mash-accent-rgb: 167 139 250;
+  --mash-color-accent-default: #A78BFA;
+  --mash-color-accent-hover: #BEA7FF;
+  --mash-color-accent-pressed: #8F6AE6;
+}
+
+:root[data-theme="dark"][data-color-theme="gold"],
+:root[data-color-theme="gold"] .radix-themes:is(.dark, .dark-theme) {
+  --mash-accent-rgb: 214 177 111;
+  --mash-color-accent-default: #D6B16F;
+  --mash-color-accent-hover: #E8C98E;
+  --mash-color-accent-pressed: #B48A49;
+  --mash-color-grid-minor: rgb(var(--mash-accent-rgb) / .03);
+  --mash-color-grid-major: rgb(var(--mash-accent-rgb) / .06);
+  --mash-color-geometry-background: rgb(var(--mash-accent-rgb) / .05);
+}
+
+:root[data-theme="dark"],
+.radix-themes:is(.dark, .dark-theme) {
+  --mash-color-accent-foreground: var(--mash-color-accent-default);
+  --mash-color-accent-label: var(--mash-color-text-muted);
+}
+
+:root[data-color-theme] .radix-themes:is(.dark, .dark-theme) {
+  --mash-color-accent-foreground: var(--mash-color-accent-default);
+  --mash-color-accent-label: var(--mash-color-text-muted);
+}
+
+:root,
+.radix-themes {
+  /* Scene and glass surfaces remain neutral across all three palettes. */
+  --fgo-bg-base: var(--mash-color-background-base);
+  --fgo-bg-soft: var(--mash-color-background-subtle);
+  --fgo-line: var(--mash-color-geometry-background);
+  --fgo-gold: var(--mash-color-geometry-background);
+  --fgo-blue: var(--mash-color-geometry-background);
+  --fgo-silver: var(--mash-color-border-subtle);
+  --fgo-star: var(--mash-color-geometry-node);
+  --fgo-vignette: rgba(3, 4, 6, 0.22);
+  --fgo-surface: var(--mash-color-surface-default);
+  --fgo-surface-strong: var(--mash-color-surface-default);
+  --fgo-surface-border: var(--mash-color-border-default);
+  --fgo-control-hover: var(--mash-color-surface-hover);
+  --fgo-shadow: rgba(3, 4, 6, 0.34);
+  --settings-glass-bg: var(--mash-color-surface-default);
+  --settings-glass-nav-bg: var(--mash-color-background-subtle);
+  --settings-glass-header-bg: var(--mash-color-surface-subtle);
+  --settings-glass-border: var(--mash-color-border-default);
+  --settings-glass-divider: var(--mash-color-border-subtle);
+  --settings-glass-shadow: rgba(3, 4, 6, 0.42);
+}
+
+:root[data-theme="dark"] {
+  color: var(--mash-color-text-primary);
+  background-color: var(--mash-color-background-base);
+}
+
+:root[data-theme="light"] {
+  color: var(--mash-color-text-primary);
+  background-color: var(--mash-color-background-base);
+}
+
+:root[data-theme="light"],
+.radix-themes:is(.light, .light-theme) {
+  --fgo-vignette: rgb(23 32 42 / .04);
+  --fgo-shadow: rgb(23 32 42 / .08);
+  --settings-glass-shadow: rgb(23 32 42 / .1);
+}
+
+.radix-themes:is(.dark, .dark-theme) {
+  color-scheme: dark;
+  --color-background: var(--mash-color-background-base);
+  --color-panel-solid: var(--mash-color-surface-default);
+  --color-panel-translucent: var(--mash-color-surface-default);
+  --color-surface: var(--mash-color-surface-subtle);
+  --color-overlay: var(--mash-color-overlay-scrim);
+  --gray-1: var(--mash-color-background-base);
+  --gray-2: var(--mash-color-surface-default);
+  --gray-3: var(--mash-color-surface-subtle);
+  --gray-4: var(--mash-color-background-elevated);
+  --gray-5: #30333A;
+  --gray-6: #363940;
+  --gray-7: #45484F;
+  --gray-8: #535C69;
+  --gray-9: #626B79;
+  --gray-10: var(--mash-color-text-muted);
+  --gray-11: var(--mash-color-text-secondary);
+  --gray-12: var(--mash-color-text-primary);
+  --gray-contrast: var(--mash-color-text-primary);
+  --gray-a1: rgba(255, 255, 255, 0.025);
+  --gray-a2: rgba(255, 255, 255, 0.045);
+  --gray-a3: rgba(255, 255, 255, 0.07);
+  --gray-a4: rgba(255, 255, 255, 0.09);
+  --gray-a5: rgba(255, 255, 255, 0.12);
+  --gray-a6: rgba(255, 255, 255, 0.16);
+  --gray-a7: rgba(255, 255, 255, 0.2);
+  --gray-a8: rgba(255, 255, 255, 0.26);
+  --gray-a9: rgba(255, 255, 255, 0.38);
+  --gray-a10: rgba(255, 255, 255, 0.52);
+  --gray-a11: rgba(255, 255, 255, 0.7);
+  --gray-a12: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-color-theme] .radix-themes,
+.radix-themes:is(.dark, .dark-theme) {
+  /* Radix and older blue-based controls resolve the same semantic accent.
+     Keep other Radix color families intact for meaningful status/game colors. */
+  --blue-1: var(--mash-color-background-base);
+  --blue-a1: var(--mash-color-geometry-background);
+  --blue-2: var(--mash-color-surface-default);
+  --blue-a2: var(--mash-color-grid-minor);
+  --blue-3: color-mix(in srgb, var(--mash-color-accent-default) 4%, var(--mash-color-background-base));
+  --blue-a3: var(--mash-color-surface-selected);
+  --blue-4: color-mix(in srgb, var(--mash-color-accent-default) 6%, var(--mash-color-background-base));
+  --blue-a4: var(--mash-color-surface-pressed);
+  --blue-5: color-mix(in srgb, var(--mash-color-accent-default) 9%, var(--mash-color-background-base));
+  --blue-a5: var(--mash-color-axis-subtle);
+  --blue-6: color-mix(in srgb, var(--mash-color-accent-default) 15%, var(--mash-color-background-base));
+  --blue-a6: var(--mash-color-axis-default);
+  --blue-7: color-mix(in srgb, var(--mash-color-accent-default) 25%, var(--mash-color-background-base));
+  --blue-a7: var(--mash-color-node-subtle);
+  --blue-8: var(--mash-color-border-focus);
+  --blue-a8: var(--mash-color-node-default);
+  --blue-9: var(--mash-color-accent-default);
+  --blue-a9: var(--mash-color-accent-default);
+  --blue-10: var(--mash-color-accent-hover);
+  --blue-a10: var(--mash-color-accent-hover);
+  --blue-11: var(--mash-color-accent-foreground);
+  --blue-a11: var(--mash-color-accent-foreground);
+  --blue-12: var(--mash-color-text-primary);
+  --blue-a12: var(--mash-color-text-primary);
+  --blue-contrast: var(--mash-color-text-inverse);
+  --blue-surface: var(--mash-color-surface-selected);
+  --blue-indicator: var(--mash-color-accent-default);
+  --blue-track: var(--mash-color-accent-default);
+}
+
+/* Color-only adapters for custom components with their own local palette. */
+.app-root[data-theme] .home-page {
+  --home-background: var(--mash-color-background-base);
+  --home-ink: var(--mash-color-text-primary);
+  --home-muted: var(--mash-color-text-secondary);
+  --home-kicker: var(--mash-color-text-muted);
+  --home-card: var(--mash-color-surface-default);
+  --home-card-border: var(--mash-color-border-default);
+  --home-card-shadow: var(--fgo-shadow);
+  --home-primary: var(--mash-color-surface-default);
+  --home-primary-shadow: var(--fgo-shadow);
+  --home-primary-ink: var(--mash-color-text-primary);
+  --home-primary-muted: var(--mash-color-text-secondary);
+  --home-battle-accent: var(--mash-color-accent-default);
+  --home-summon-accent: var(--mash-color-accent-default);
+  --home-enhance-accent: var(--mash-color-accent-default);
+}
+
+.radix-themes .home-action--battle {
+  border-color: var(--mash-color-border-default);
+}
+
+.radix-themes .home-action-orbit {
+  background: var(--mash-color-node-default);
+  -webkit-mask: var(--home-orbit) center right / auto no-repeat;
+  mask: var(--home-orbit) center right / auto no-repeat;
+}
+
+.radix-themes .home-action-label,
+.radix-themes .project-context-label,
+.radix-themes .mash-page-title small,
+.radix-themes .section-heading-english,
+.radix-themes .command-rail-label,
+.radix-themes .command-workspace .battle-section-heading .section-heading-english {
+  color: var(--mash-color-text-muted);
+}
+
+.radix-themes .home-action-number {
+  color: var(--mash-color-accent-default);
+}
+
+.radix-themes .mash-page-title h1 {
+  color: var(--mash-color-text-primary);
+}
+
+.radix-themes .settings-page {
+  --settings-page-bg: var(--mash-color-background-base);
+  --settings-grid: var(--mash-color-grid-minor);
+}
+
+.radix-themes .formation-grid .slot-card:not(.is-support),
+.radix-themes .servant-slot.filled,
+.radix-themes .support-settings-stepper,
+.radix-themes .support-settings-stepper .rt-Button,
+.radix-themes .support-settings-heading,
+.radix-themes .support-settings-footer,
+.radix-themes .rt-DialogContent.support-settings-drawer {
+  border-color: var(--mash-color-border-default);
+}
+
+.radix-themes .servant-slot.filled,
+.radix-themes .image-card {
+  background: var(--mash-color-surface-default);
+}
+
+.radix-themes .formation-grid .is-support .slot-header {
+  background: var(--mash-color-surface-selected);
+  color: var(--mash-color-text-primary);
+}
+
+.radix-themes .formation-grid .support-corner-badge {
+  color: var(--mash-color-text-inverse);
+}
+
+.radix-themes .support-settings-field .rt-TextFieldRoot,
+.radix-themes .support-settings-np.rt-Button,
+.radix-themes .support-settings-ce.rt-Button {
+  box-shadow: inset 0 0 0 .75px var(--mash-color-border-default);
+}
+
+.radix-themes .support-settings-body::-webkit-scrollbar-thumb {
+  background: var(--mash-color-border-strong);
+}
+
+.radix-themes .rt-DialogOverlay:has(.support-settings-drawer)::before {
+  background: var(--mash-color-overlay-scrim);
+}
+
+.radix-themes .support-settings-skill-icon .rt-AvatarFallback {
+  background: var(--mash-color-surface-subtle);
+  color: var(--mash-color-text-secondary);
+}
+
+.radix-themes .support-settings-slot-number {
+  color: var(--mash-color-text-primary);
+}
+
+.radix-themes .battle-page .battle-recovery-amount {
+  color: var(--mash-color-text-secondary);
+}
+
+.radix-themes .task-action-copy small {
+  color: var(--mash-color-text-muted);
+}
+
+.radix-themes .settings-basic .recognition-mode-select .rt-SelectIcon {
+  color: var(--mash-color-text-secondary);
+}
+
+.radix-themes .rt-BaseButton.rt-variant-solid:where(:not([data-accent-color]), [data-accent-color="blue"]):enabled:active {
+  background-color: var(--mash-color-accent-pressed);
+  filter: none;
+}
+
+.radix-themes .task-action-button:not(.task-action-button-stop):enabled:hover {
+  color: var(--mash-color-accent-hover);
+}
+
+.radix-themes .task-action-button:not(.task-action-button-stop):enabled:active {
+  color: var(--mash-color-accent-pressed);
+}
+
+/* The light blue interaction color is stronger on solid action backgrounds
+   so the existing small white labels remain readable. */
+.radix-themes:is(.light, .light-theme) .rt-BaseButton.rt-variant-solid:where(:not([data-accent-color]), [data-accent-color="blue"]) {
+  background-color: var(--mash-color-accent-foreground);
+}
+.radix-themes:is(.light, .light-theme) .rt-BaseButton.rt-variant-solid:where(:not([data-accent-color]), [data-accent-color="blue"]):enabled:hover {
+  background-color: var(--mash-color-accent-hover);
+}
+.radix-themes:is(.light, .light-theme) .rt-BaseButton.rt-variant-solid:where(:not([data-accent-color]), [data-accent-color="blue"]):enabled:active {
+  background-color: var(--mash-color-accent-pressed);
+}
