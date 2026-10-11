@@ -1,4 +1,5 @@
 import { PageHeader } from "./components/common/PageHeader";
+import { ObservatoryBackground } from "./components/common/ObservatoryBackground";
 import { TaskActionButton } from "./components/common/TaskActionButton";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { AlertDialog, Box, Button, Flex, Text, Spinner } from "@radix-ui/themes";
@@ -974,6 +975,7 @@ function App({
   if (!setupReady) {
     return (
       <Flex direction="column" className="app-root" data-theme={theme}>
+        <ObservatoryBackground density="minimal" />
         {!settingsOpen && <SetupPage onReady={() => setSetupReady(true)} />}
         <SettingsPage
           open={settingsOpen}
@@ -1002,6 +1004,10 @@ function App({
 
   return (
     <Flex direction="column" className="app-root" data-theme={theme}>
+      <ObservatoryBackground
+        composition={!settingsOpen && view === "home" ? "home" : "observatory"}
+        density={settingsOpen || view === "command" ? "minimal" : "observatory"}
+      />
       <Flex className="app-container">
         <Box className="main-content">
           {settingsOpen ? (

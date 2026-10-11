@@ -3,6 +3,8 @@
 :root,
 .radix-themes:where(.light, .light-theme) {
   --mash-accent-rgb: 8 127 232;
+  --mash-opacity-background-ambient: .02;
+  --mash-opacity-background-fade: .18;
   --mash-color-background-base: #FBFCFE;
   --mash-color-background-subtle: #F5F8FC;
   --mash-color-background-elevated: #FFFFFF;
@@ -51,6 +53,8 @@
 :root[data-theme="dark"],
 .radix-themes:is(.dark, .dark-theme) {
   --mash-accent-rgb: 167 139 250;
+  --mash-opacity-background-ambient: .04;
+  --mash-opacity-background-fade: .08;
   --mash-color-background-base: #121316;
   --mash-color-background-subtle: #16181C;
   --mash-color-background-elevated: #272A30;
@@ -284,13 +288,6 @@
 
 .radix-themes .home-action--battle {
   border-color: var(--mash-color-border-default);
-}
-
-/* Recolor only technical SVG decoration; original alpha and paths are retained. */
-.radix-themes .home-magic-circle {
-  background: var(--mash-color-geometry-node);
-  -webkit-mask: var(--home-circle) center / contain no-repeat;
-  mask: var(--home-circle) center / contain no-repeat;
 }
 
 .radix-themes .home-action-orbit {

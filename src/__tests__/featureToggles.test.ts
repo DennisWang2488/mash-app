@@ -2,6 +2,13 @@ import { describe, expect, it } from "vitest";
 import { createFeatureToggles } from "../featureToggles";
 
 describe("feature toggles", () => {
+  it("allows tilted star orbits to be disabled without changing other features", () => {
+    expect(createFeatureToggles({
+      DEV: false,
+      VITE_FEATURE_TILTED_STAR_ORBITS_BACKGROUND: "false",
+    })).toEqual({ ...createFeatureToggles({ DEV: false }), tiltedStarOrbitsBackground: false });
+  });
+
   it("enables unfinished tools by default during development", () => {
     expect(createFeatureToggles({ DEV: true })).toEqual({
       servantEnhancement: true,
@@ -13,6 +20,7 @@ describe("feature toggles", () => {
       turnAttackModes: true,
       settingsDebug: true,
       autoFriendRequest: false,
+      tiltedStarOrbitsBackground: true,
     });
   });
 
@@ -27,6 +35,7 @@ describe("feature toggles", () => {
       turnAttackModes: true,
       settingsDebug: false,
       autoFriendRequest: false,
+      tiltedStarOrbitsBackground: true,
     });
   });
 
@@ -53,6 +62,7 @@ describe("feature toggles", () => {
       turnAttackModes: true,
       settingsDebug: false,
       autoFriendRequest: true,
+      tiltedStarOrbitsBackground: true,
     });
   });
 

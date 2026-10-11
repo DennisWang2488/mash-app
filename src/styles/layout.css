@@ -6,26 +6,7 @@
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  background:
-    radial-gradient(ellipse at center, transparent 42%, var(--fgo-vignette) 100%),
-    linear-gradient(135deg, var(--fgo-bg-base), var(--fgo-bg-soft));
-}
-
-.app-root::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 12px 18px, var(--fgo-star) 0 1px, transparent 1.4px),
-    radial-gradient(circle at 64px 56px, var(--fgo-silver) 0 0.8px, transparent 1.2px),
-    linear-gradient(45deg, transparent 48%, var(--fgo-line) 49%, var(--fgo-line) 51%, transparent 52%),
-    linear-gradient(-45deg, transparent 48%, var(--fgo-line) 49%, var(--fgo-line) 51%, transparent 52%);
-  background-size: 96px 96px, 128px 128px, 72px 72px, 72px 72px;
-  -webkit-mask-image: radial-gradient(circle at center, black 36%, transparent 82%);
-  mask-image: radial-gradient(circle at center, black 36%, transparent 82%);
-  opacity: 0.6;
+  background: var(--mash-color-background-base);
 }
 
 .app-container {

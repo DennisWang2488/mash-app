@@ -113,7 +113,6 @@ export function HomePage({
     <main className="home-page">
       <div className="home-panel">
         <div className="home-figure-area">
-          <div className="home-magic-circle" aria-hidden="true" />
           <div className="home-figure-trigger">
             {imagePath ? (
               <img

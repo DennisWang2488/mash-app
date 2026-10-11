@@ -6,4 +6,5 @@ interface ImportMetaEnv {
   readonly VITE_FEATURE_GRAND_CARD_PRIORITY?: string;
   readonly VITE_FEATURE_TURN_ATTACK_MODES?: string;
   readonly VITE_FEATURE_AUTO_FRIEND_REQUEST?: string;
+  readonly VITE_FEATURE_TILTED_STAR_ORBITS_BACKGROUND?: string;
 }
