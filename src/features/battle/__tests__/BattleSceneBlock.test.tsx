@@ -1049,11 +1049,11 @@ describe("BattleSceneBlock staged action editor", () => {
     expect(summary?.querySelector(".battle-inline-skill-icon")).not.toBeNull();
     expect(screen.queryByText("Order Change")).not.toBeInTheDocument();
     expect(children[4]).toHaveTextContent("技能 3");
-    expect(children[5]).toHaveTextContent("换位");
-    expect(children[6]).toHaveClass("battle-inline-face");
-    expect(children[7]).toHaveTextContent("↔");
-    expect(children[8]).toHaveClass("battle-inline-face");
+    expect(children[5]).toHaveClass("battle-inline-face");
+    expect(children[6]).toHaveTextContent("↔");
+    expect(children[7]).toHaveClass("battle-inline-face");
     const outcome = summary?.querySelector(".command-row-outcome") as HTMLElement;
+    expect(within(outcome).queryByText("换位")).not.toBeInTheDocument();
     expect(outcome.querySelectorAll(".battle-inline-face")).toHaveLength(2);
     expect(within(outcome).queryByText("甲", { exact: true })).not.toBeInTheDocument();
     expect(within(outcome).queryByText("丁", { exact: true })).not.toBeInTheDocument();
