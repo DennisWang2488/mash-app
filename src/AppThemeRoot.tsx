@@ -3,7 +3,7 @@ import { Theme } from "@radix-ui/themes";
 import App from "./App";
 import { DebugCanvasWindow } from "./features/debug/DebugCanvasWindow";
 import { invoke } from "./tauri";
-import type { AppTheme, AppThemePreference } from "./types/theme";
+import { isAppColorTheme, type AppColorTheme, type AppTheme, type AppThemePreference } from "./types/theme";
 import {
   DEFAULT_MYSTIC_CODE_GENDER,
   normalizeMysticCodeGender,
@@ -35,11 +35,41 @@ export function AppThemeRoot({ isDebugCanvas }: AppThemeRootProps) {
   const [themePreference, setThemePreference] =
     React.useState<AppThemePreference>("system");
   const [systemTheme, setSystemTheme] = React.useState<AppTheme>(getSystemTheme);
+  const [colorTheme, setColorTheme] = React.useState<AppColorTheme>();
+  const [colorThemeError, setColorThemeError] = React.useState<string>();
+  const colorThemeRequest = React.useRef(0);
   const [startupReady, setStartupReady] = React.useState(isDebugCanvas);
   const [mysticCodeGender, setMysticCodeGender] = React.useState<MysticCodeGender>(
     DEFAULT_MYSTIC_CODE_GENDER,
   );
   const theme = themePreference === "system" ? systemTheme : themePreference;
+
+  const handleColorThemeChange = React.useCallback(async (value: AppColorTheme) => {
+    const saved = await invoke<AppColorTheme>("set_app_color_theme", { value });
+    if (!isAppColorTheme(saved)) throw new Error("主题配色保存失败");
+    setColorTheme(saved);
+  }, []);
+
+  const reloadColorTheme = React.useCallback(async () => {
+    const request = ++colorThemeRequest.current;
+    setColorThemeError(undefined);
+    try {
+      const saved = await invoke<AppColorTheme>("get_app_color_theme");
+      if (!isAppColorTheme(saved)) throw new Error("Invalid app color theme response");
+      if (request === colorThemeRequest.current) setColorTheme(saved);
+    } catch (error: unknown) {
+      if (request !== colorThemeRequest.current) return;
+      console.error("Failed to load app color theme", error);
+      setColorThemeError(/get_app_color_theme.*not found|unknown command/i.test(String(error))
+        ? "当前应用需要重启后才能使用主题配色。"
+        : "主题配色读取失败，请重试。");
+    }
+  }, []);
+
+  React.useEffect(() => {
+    void reloadColorTheme();
+    return () => { colorThemeRequest.current += 1; };
+  }, [reloadColorTheme]);
 
   const handleThemePreferenceChange = React.useCallback((nextTheme: AppThemePreference) => {
     setThemePreference(nextTheme);
@@ -58,6 +88,10 @@ export function AppThemeRoot({ isDebugCanvas }: AppThemeRootProps) {
   React.useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+
+  React.useEffect(() => {
+    if (colorTheme) document.documentElement.dataset.colorTheme = colorTheme;
+  }, [colorTheme]);
 
   React.useEffect(() => {
     const media = window.matchMedia?.("(prefers-color-scheme: dark)");
@@ -106,6 +140,7 @@ export function AppThemeRoot({ isDebugCanvas }: AppThemeRootProps) {
     <Theme
       appearance={theme}
       accentColor="blue"
+      data-color-theme={colorTheme}
       grayColor="slate"
       panelBackground="translucent"
       radius="medium"
@@ -117,6 +152,10 @@ export function AppThemeRoot({ isDebugCanvas }: AppThemeRootProps) {
           theme={theme}
           themePreference={themePreference}
           onThemeChange={handleThemePreferenceChange}
+          colorTheme={colorTheme}
+          colorThemeError={colorThemeError}
+          onColorThemeReload={reloadColorTheme}
+          onColorThemeChange={handleColorThemeChange}
           mysticCodeGender={mysticCodeGender}
           onMysticCodeGenderChange={handleMysticCodeGenderChange}
           startupReady={startupReady}

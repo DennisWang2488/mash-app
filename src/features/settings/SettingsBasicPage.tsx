@@ -21,6 +21,7 @@ import {
 } from "../../types/appUiSettings";
 import type { NoblePhantasmDetectionMode, RecognitionSettings } from "../../types/recognition";
 import { featureToggles } from "../../featureToggles";
+import { isAppColorTheme, type AppColorTheme } from "../../types/theme";
 import {
   normalizeRecognitionSettings,
   UNKNOWN_SCREEN_TIMEOUT_COUNT_DEFAULT,
@@ -36,11 +37,19 @@ export function SettingsBasicPage({
   onBattleStartPanelChange,
   mysticCodeGender = "female",
   onMysticCodeGenderChange,
+  colorTheme,
+  colorThemeError,
+  onColorThemeReload,
+  onColorThemeChange,
 }: {
   active: boolean;
   onBattleStartPanelChange?: (value: BattleStartPanel) => void;
   mysticCodeGender?: MysticCodeGender;
   onMysticCodeGenderChange?: (value: MysticCodeGender) => void;
+  colorTheme?: AppColorTheme;
+  colorThemeError?: string;
+  onColorThemeReload?: () => Promise<void>;
+  onColorThemeChange?: (value: AppColorTheme) => Promise<void>;
 }) {
   const [battleStartPanel, setBattleStartPanel] = useState<BattleStartPanel>(
     DEFAULT_BATTLE_START_PANEL
@@ -64,6 +73,22 @@ export function SettingsBasicPage({
   const [error, setError] = useState<string | null>(null);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const [savingGender, setSavingGender] = useState(false);
+  const [savingColorTheme, setSavingColorTheme] = useState(false);
+
+  const saveColorTheme = async (value: string) => {
+    if (!isAppColorTheme(value) || !onColorThemeChange) return;
+    setSavingColorTheme(true);
+    setError(null);
+    setSavedMessage(null);
+    try {
+      await onColorThemeChange(value);
+      setSavedMessage("已保存");
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setSavingColorTheme(false);
+    }
+  };
 
   const applySettings = useCallback((settings: RecognitionSettings) => {
     setMode(settings.noblePhantasmDetectionMode);
@@ -365,6 +390,23 @@ export function SettingsBasicPage({
   return (
     <Box className="settings-section-panel settings-basic">
       <Flex direction="column" className="recognition-setting-block">
+        <SettingsRow label="主题配色" description="选择界面的强调色，适用于浅色和深色模式"
+          help={colorThemeError && <Text size="1" color="red" role="alert">{colorThemeError}</Text>}>
+          <Select.Root value={colorTheme ?? ""}
+            onValueChange={(value) => void saveColorTheme(value)}
+            disabled={savingColorTheme || !colorTheme || !onColorThemeChange}>
+            <Select.Trigger aria-label="主题配色" className="recognition-mode-select"
+              placeholder={colorThemeError ? "读取失败" : "正在读取…"} />
+            <Select.Content position="popper" className="settings-select-menu">
+              <Select.Item value="blue">蓝色</Select.Item>
+              <Select.Item value="violet">紫色</Select.Item>
+              <Select.Item value="gold">香槟金</Select.Item>
+            </Select.Content>
+          </Select.Root>
+          {colorThemeError && onColorThemeReload && (
+            <Button size="1" variant="ghost" onClick={() => void onColorThemeReload()}>重试</Button>
+          )}
+        </SettingsRow>
         <SettingsRow label="御主礼装显示性别" description="选择队伍配置中御主礼装图标使用的服装款式">
           <Select.Root value={mysticCodeGender ?? "female"}
             onValueChange={(value) => void saveMysticCodeGender(value as MysticCodeGender)} disabled={saving || savingGender}>

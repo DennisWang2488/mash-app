@@ -44,7 +44,7 @@ import type {
 import type { AssetBundleStatus } from "./types/assets";
 import type { RuntimeStatus } from "./types/runtime";
 import type { SelfCheckStatus } from "./types/selfCheck";
-import type { AppTheme, AppThemePreference } from "./types/theme";
+import type { AppColorTheme, AppTheme, AppThemePreference } from "./types/theme";
 import {
   DEFAULT_BATTLE_START_PANEL,
   normalizeBattleStartPanel,
@@ -99,6 +99,10 @@ interface AppProps {
   theme: AppTheme;
   themePreference: AppThemePreference;
   onThemeChange: (theme: AppThemePreference) => void;
+  colorTheme?: AppColorTheme;
+  colorThemeError?: string;
+  onColorThemeReload?: () => Promise<void>;
+  onColorThemeChange?: (value: AppColorTheme) => Promise<void>;
   mysticCodeGender?: MysticCodeGender;
   onMysticCodeGenderChange?: (gender: MysticCodeGender) => void;
   startupReady?: boolean;
@@ -115,6 +119,10 @@ function App({
   theme,
   themePreference,
   onThemeChange,
+  colorTheme,
+  colorThemeError,
+  onColorThemeReload,
+  onColorThemeChange,
   mysticCodeGender = "female",
   onMysticCodeGenderChange = () => {},
   startupReady = true,
@@ -974,6 +982,10 @@ function App({
           onSectionChange={setSettingsSection}
           onProjectsImported={handleProjectsImported}
           onBattleStartPanelChange={setBattleStartPanel}
+          colorTheme={colorTheme}
+          colorThemeError={colorThemeError}
+          onColorThemeReload={onColorThemeReload}
+          onColorThemeChange={onColorThemeChange}
           mysticCodeGender={mysticCodeGender}
           onMysticCodeGenderChange={onMysticCodeGenderChange}
         />
@@ -1000,6 +1012,10 @@ function App({
               onSectionChange={setSettingsSection}
               onProjectsImported={handleProjectsImported}
               onBattleStartPanelChange={setBattleStartPanel}
+              colorTheme={colorTheme}
+              colorThemeError={colorThemeError}
+              onColorThemeReload={onColorThemeReload}
+              onColorThemeChange={onColorThemeChange}
               mysticCodeGender={mysticCodeGender}
               onMysticCodeGenderChange={onMysticCodeGenderChange}
             />

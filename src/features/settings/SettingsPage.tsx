@@ -6,6 +6,7 @@ import { invoke } from "../../tauri";
 import { featureToggles } from "../../featureToggles";
 import type { BattleStartPanel, MysticCodeGender } from "../../types/appUiSettings";
 import type { Project } from "../../types/project";
+import type { AppColorTheme } from "../../types/theme";
 import { SettingsDataManagementPage } from "./SettingsDataManagementPage";
 import { SettingsBasicPage } from "./SettingsBasicPage";
 import { SettingsRecognitionPage } from "./SettingsRecognitionPage";
@@ -30,11 +31,15 @@ interface SettingsPageProps {
   onBattleStartPanelChange?: (value: BattleStartPanel) => void;
   mysticCodeGender?: MysticCodeGender;
   onMysticCodeGenderChange?: (value: MysticCodeGender) => void;
+  colorTheme?: AppColorTheme;
+  colorThemeError?: string;
+  onColorThemeReload?: () => Promise<void>;
+  onColorThemeChange?: (value: AppColorTheme) => Promise<void>;
 }
 
 type SettingsRenderProps = Pick<
   SettingsPageProps,
-  "onProjectsImported" | "onBattleStartPanelChange" | "mysticCodeGender" | "onMysticCodeGenderChange"
+  "onProjectsImported" | "onBattleStartPanelChange" | "mysticCodeGender" | "onMysticCodeGenderChange" | "colorTheme" | "onColorThemeChange" | "colorThemeError" | "onColorThemeReload"
 > & {
   onResourcesExitBlockedChange: (blocked: boolean) => void;
 };
@@ -52,6 +57,10 @@ const navItems: Array<{
     render: (active, props) => (
       <SettingsBasicPage
         active={active}
+        colorTheme={props.colorTheme}
+        colorThemeError={props.colorThemeError}
+        onColorThemeReload={props.onColorThemeReload}
+        onColorThemeChange={props.onColorThemeChange}
         onBattleStartPanelChange={props.onBattleStartPanelChange}
         mysticCodeGender={props.mysticCodeGender}
         onMysticCodeGenderChange={props.onMysticCodeGenderChange}
@@ -107,6 +116,10 @@ export function SettingsPage({
   onBattleStartPanelChange,
   mysticCodeGender,
   onMysticCodeGenderChange,
+  colorTheme,
+  colorThemeError,
+  onColorThemeReload,
+  onColorThemeChange,
 }: SettingsPageProps) {
   const [resourcesExitBlocked, setResourcesExitBlocked] = useState(false);
   const pageRef = useRef<HTMLElement>(null);
@@ -185,6 +198,8 @@ export function SettingsPage({
             } stacked rail>{activeItem.label}</SectionHeading>
             {activeItem.render(open, {
               onProjectsImported, onBattleStartPanelChange, mysticCodeGender,
+              colorTheme, onColorThemeChange,
+              colorThemeError, onColorThemeReload,
               onMysticCodeGenderChange, onResourcesExitBlockedChange: setResourcesExitBlocked,
             })}
           </Box>

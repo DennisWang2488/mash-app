@@ -5,6 +5,7 @@ import type { CraftEssence } from "./types/craftEssence";
 import type { Project, ProjectCatalog } from "./types/project";
 import type { Servant } from "./types/servant";
 import type { Server } from "./types/server";
+import { isAppColorTheme, type AppColorTheme } from "./types/theme";
 
 type InvokeArgs = Record<string, unknown>;
 // Explicit browser preview only; native runtime and asset checks are unchanged.
@@ -112,6 +113,7 @@ let nextProjectNumber = 2;
 let nextProjectGroupNumber = 1;
 let activeProjectId: string | null = "dev-project-1";
 let appTheme: "light" | "dark" | "system" | null = null;
+let appColorTheme: AppColorTheme = "violet";
 let battleStartPanel: "operationLog" | "runStatus" | "none" = "operationLog";
 
 let projects: Project[] = [
@@ -377,6 +379,12 @@ async function invokeLegacyDevMock<T>(cmd: string, args: InvokeArgs = {}): Promi
         appTheme = args.theme;
       }
       return null as T;
+    case "get_app_color_theme":
+      return appColorTheme as T;
+    case "set_app_color_theme":
+      if (!isAppColorTheme(args.value)) throw new Error("无效的主题配色");
+      appColorTheme = args.value;
+      return appColorTheme as T;
     case "get_mystic_code_gender":
       return mysticCodeGender as T;
     case "set_mystic_code_gender":

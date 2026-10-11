@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { invoke } from "../../../tauri";
@@ -25,6 +25,54 @@ const SETTINGS: RecognitionSettings = {
 };
 
 describe("SettingsBasicPage", () => {
+  it("shows a failed read with a retry action instead of an endless loading placeholder", async () => {
+    vi.mocked(invoke).mockImplementation(async (command) => command === "get_recognition_settings" ? SETTINGS : null);
+    const retry = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    renderWithTheme(<SettingsBasicPage active colorThemeError="主题配色读取失败，请重试。" onColorThemeReload={retry} />);
+    expect(screen.getByRole("combobox", { name: "主题配色" })).toHaveTextContent("读取失败");
+    expect(screen.getByRole("alert")).toHaveTextContent("主题配色读取失败，请重试。");
+    expect(screen.queryByText("正在读取…")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "重试" }));
+    expect(retry).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    ["blue", "蓝色"], ["violet", "紫色"], ["gold", "香槟金"],
+  ] as const)("offers the %s theme in settings", async (value, label) => {
+    vi.mocked(invoke).mockImplementation(async (command) => {
+      if (command === "get_recognition_settings") return SETTINGS;
+      return null;
+    });
+    const change = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    renderWithTheme(<SettingsBasicPage active colorTheme="violet" onColorThemeChange={change} />);
+    await user.click(screen.getByRole("combobox", { name: "主题配色" }));
+    await user.click(screen.getByRole("option", { name: label }));
+    if (value !== "violet") {
+      expect(change).toHaveBeenCalledWith(value);
+      expect(await screen.findByText("已保存")).toBeInTheDocument();
+    } else {
+      expect(screen.getByRole("combobox", { name: "主题配色" })).toHaveTextContent("紫色");
+    }
+  });
+
+  it("blocks repeated changes during saving and retains the selected theme after failure", async () => {
+    vi.mocked(invoke).mockImplementation(async (command) => command === "get_recognition_settings" ? SETTINGS : null);
+    let fail!: (error: Error) => void;
+    const change = vi.fn(() => new Promise<void>((_, reject) => { fail = reject; }));
+    const user = userEvent.setup();
+    renderWithTheme(<SettingsBasicPage active colorTheme="violet" onColorThemeChange={change} />);
+    const select = screen.getByRole("combobox", { name: "主题配色" });
+    await user.click(select);
+    await user.click(screen.getByRole("option", { name: "香槟金" }));
+    expect(select).toBeDisabled();
+    await act(async () => { fail(new Error("无法保存界面设置")); });
+    expect(await screen.findByText("Error: 无法保存界面设置")).toBeInTheDocument();
+    expect(select).not.toBeDisabled();
+    expect(select).toHaveTextContent("紫色");
+  });
+
   it("keeps the Mystic Code gender visible when automatic friend requests are gated off", async () => {
     vi.mocked(invoke).mockImplementation(async (command) => {
       if (command === "get_recognition_settings") return SETTINGS;
