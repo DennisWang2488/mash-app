@@ -1010,7 +1010,7 @@ function App({
       />
       <Flex className="app-container">
         <Box className="main-content">
-          {settingsOpen ? (
+          {settingsOpen && (
             <SettingsPage
               open={settingsOpen}
               section={settingsSection}
@@ -1025,7 +1025,10 @@ function App({
               mysticCodeGender={mysticCodeGender}
               onMysticCodeGenderChange={onMysticCodeGenderChange}
             />
-          ) : view === "home" ? (
+          )}
+          {/* Keep task pages subscribed to runtime events while settings cover them. */}
+          <Box style={{ display: settingsOpen ? "none" : "contents" }}>
+          {view === "home" ? (
             <HomePage
               mysticCodes={mysticCodes}
               figureId={homeMasterFigureId}
@@ -1235,6 +1238,7 @@ function App({
               )}
             </Box>
           )}
+          </Box>
         </Box>
       </Flex>
       <StatusBar

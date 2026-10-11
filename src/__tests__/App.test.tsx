@@ -152,6 +152,80 @@ describe("App active project restore", () => {
     expect(await screen.findByRole("button", { name: "运行设置" })).toBeEnabled();
   });
 
+  it("preserves running controls and stop-after-round when returning from settings", async () => {
+    installAppMock("project-1", { battleStartPanel: "none" });
+    const user = userEvent.setup();
+    renderWithTheme(<App theme="light" themePreference="light" onThemeChange={vi.fn()} />);
+    await screen.findByText("第一套");
+    await user.click(screen.getByRole("button", { name: "指令设置" }));
+    await user.click(await screen.findByRole("button", { name: "运行设置" }));
+    await user.click(screen.getByRole("button", { name: "开始任务" }));
+    const stopButton = screen.getByRole("button", { name: "停止任务" });
+    await user.click(screen.getByRole("button", { name: "运行完当前轮次后停止" }));
+    await user.click(screen.getByRole("button", { name: "设置" }));
+    expect(await screen.findByRole("main", { name: "设置" })).toBeVisible();
+    expect(stopButton).not.toBeVisible();
+    expect(screen.queryByRole("button", { name: "开始任务" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "停止任务" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "关闭设置" }));
+    expect(screen.getByRole("button", { name: "停止任务" })).toBe(stopButton);
+    expect(screen.getByRole("button", { name: "本轮结束后将停止" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "返回" })).toBeDisabled();
+    await user.click(stopButton);
+    expect(invoke).toHaveBeenCalledWith("stop_automation");
+    expect(vi.mocked(invoke).mock.calls.filter(([command]) => command === "start_automation")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "开始任务" })).toBeEnabled();
+  });
+
+  it.each(["finished", "error", "idle"] as const)("receives %s while settings are open and restores idle controls", async status => {
+    const handlers = new Set<Parameters<typeof listen>[1]>();
+    vi.mocked(listen).mockImplementation(async (event, handler) => {
+      if (event === "automation-status") handlers.add(handler);
+      return () => { handlers.delete(handler); };
+    });
+    installAppMock("project-1", { battleStartPanel: "none" });
+    const user = userEvent.setup();
+    renderWithTheme(<App theme="light" themePreference="light" onThemeChange={vi.fn()} />);
+    await screen.findByText("第一套");
+    await user.click(screen.getByRole("button", { name: "指令设置" }));
+    await user.click(await screen.findByRole("button", { name: "运行设置" }));
+    await user.click(screen.getByRole("button", { name: "开始任务" }));
+    await user.click(screen.getByRole("button", { name: "运行完当前轮次后停止" }));
+    await user.click(screen.getByRole("button", { name: "设置" }));
+    await screen.findByRole("main", { name: "设置" });
+    await act(async () => {
+      for (const handler of handlers) handler({
+        event: "automation-status", id: 1,
+        payload: { status, state: "Idle", currentScreen: "Unknown", message: "任务结束" },
+      });
+    });
+    await user.click(screen.getByRole("button", { name: "关闭设置" }));
+    expect(screen.getByRole("button", { name: "开始任务" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "停止任务" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "本轮结束后将停止" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "返回" })).toBeEnabled();
+    expect(vi.mocked(invoke).mock.calls.filter(([command]) => command === "start_automation")).toHaveLength(1);
+  });
+
+  it("preserves a running summon task when returning from settings", async () => {
+    installAppMock("project-1");
+    const user = userEvent.setup();
+    renderWithTheme(<App theme="light" themePreference="light" onThemeChange={vi.fn()} />);
+    await screen.findByText("第一套");
+    await user.click(screen.getByRole("button", { name: "主页" }));
+    await user.click(screen.getByRole("button", { name: "召唤" }));
+    await user.click(screen.getByRole("button", { name: "开始友情点抽取" }));
+    await user.click(screen.getByRole("button", { name: "设置" }));
+    await screen.findByRole("main", { name: "设置" });
+    await user.click(screen.getByRole("button", { name: "关闭设置" }));
+    expect(screen.getByRole("button", { name: "开始友情点抽取" })).toBeDisabled();
+    const stop = screen.getByRole("button", { name: "停止" });
+    expect(stop).toBeEnabled();
+    await user.click(stop);
+    expect(invoke).toHaveBeenCalledWith("stop_friend_point_summon_automation");
+    expect(vi.mocked(invoke).mock.calls.filter(([command]) => command === "start_friend_point_summon_automation")).toHaveLength(1);
+  });
+
   it("opens the configured run-status panel when battle automation starts", async () => {
     installAppMock("project-1", { battleStartPanel: "runStatus" });
     const user = userEvent.setup();
@@ -469,7 +543,7 @@ describe("App active project restore", () => {
     expect(await screen.findByText("宝具识别方式")).toBeInTheDocument();
     expect(screen.getByRole("main", { name: "设置" })).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(screen.queryByText("第一套")).not.toBeInTheDocument();
+    expect(screen.getByText("第一套")).not.toBeVisible();
     expect(screen.getByRole("button", { name: "基础设置" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "阈值设置" }));
 
@@ -480,7 +554,7 @@ describe("App active project restore", () => {
 
     expect(await screen.findByRole("button", { name: "导入队伍" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "导出队伍" })).toBeInTheDocument();
-    expect(screen.queryByText("第一套")).not.toBeInTheDocument();
+    expect(screen.getByText("第一套")).not.toBeVisible();
 
     await user.click(screen.getByRole("button", { name: "资源管理" }));
 
