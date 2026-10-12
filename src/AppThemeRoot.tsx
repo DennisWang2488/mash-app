@@ -2,6 +2,7 @@ import React from "react";
 import { Theme } from "@radix-ui/themes";
 import App from "./App";
 import { DebugCanvasWindow } from "./features/debug/DebugCanvasWindow";
+import { WindowTitlebar } from "./features/window/WindowTitlebar";
 import { invoke } from "./tauri";
 import { isAppColorTheme, type AppColorTheme, type AppTheme, type AppThemePreference } from "./types/theme";
 import {
@@ -148,18 +149,23 @@ export function AppThemeRoot({ isDebugCanvas }: AppThemeRootProps) {
       {isDebugCanvas ? (
         <DebugCanvasWindow />
       ) : (
-        <App
-          theme={theme}
-          themePreference={themePreference}
-          onThemeChange={handleThemePreferenceChange}
-          colorTheme={colorTheme}
-          colorThemeError={colorThemeError}
-          onColorThemeReload={reloadColorTheme}
-          onColorThemeChange={handleColorThemeChange}
-          mysticCodeGender={mysticCodeGender}
-          onMysticCodeGenderChange={handleMysticCodeGenderChange}
-          startupReady={startupReady}
-        />
+        <div className="window-shell">
+          <WindowTitlebar ready={startupReady} />
+          <div className="window-shell-body">
+            <App
+              theme={theme}
+              themePreference={themePreference}
+              onThemeChange={handleThemePreferenceChange}
+              colorTheme={colorTheme}
+              colorThemeError={colorThemeError}
+              onColorThemeReload={reloadColorTheme}
+              onColorThemeChange={handleColorThemeChange}
+              mysticCodeGender={mysticCodeGender}
+              onMysticCodeGenderChange={handleMysticCodeGenderChange}
+              startupReady={startupReady}
+            />
+          </div>
+        </div>
       )}
     </Theme>
   );

@@ -1,0 +1,86 @@
+.window-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.window-shell-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.window-shell-body > .app-root {
+  height: 100%;
+}
+
+.window-shell-body .setup-page {
+  min-height: 100%;
+  overflow-y: auto;
+}
+
+.window-titlebar {
+  display: flex;
+  align-items: center;
+  flex: 0 0 32px;
+  box-sizing: border-box;
+  background: var(--mash-color-background-base);
+  color: var(--mash-color-text-secondary);
+  border-bottom: 1px solid var(--mash-color-border-default);
+  user-select: none;
+}
+
+.window-titlebar-drag {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 1;
+  min-width: 0;
+  align-self: stretch;
+  padding-inline: 14px;
+}
+
+.window-titlebar-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .04em;
+}
+
+.window-titlebar-controls {
+  display: flex;
+  height: 31px;
+}
+
+.window-titlebar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 31px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  cursor: default;
+}
+
+.window-titlebar-button:hover,
+.window-titlebar-button[data-state="open"] {
+  background: var(--mash-color-surface-hover);
+  color: var(--mash-color-text-primary);
+}
+
+.window-titlebar-button:focus-visible {
+  outline: 2px solid var(--mash-color-border-focus);
+  outline-offset: -3px;
+}
+
+.window-titlebar-close:hover {
+  background: var(--mash-color-status-danger);
+  color: var(--mash-color-text-inverse);
+}

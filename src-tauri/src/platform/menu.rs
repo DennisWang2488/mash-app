@@ -13,6 +13,10 @@ const SAVE_ADB_SCREENSHOT_MENU_ID: &str = "save-adb-screenshot";
 const SAVE_ADB_SCREENSHOT_EVENT: &str = "save-adb-screenshot-requested";
 
 pub(crate) fn configure_app_menu<R: tauri::Runtime>(app: &tauri::App<R>) -> tauri::Result<()> {
+    // Windows puts these actions in the webview's compact titlebar menu.
+    if cfg!(target_os = "windows") {
+        return Ok(());
+    }
     let handle = app.handle();
     let pkg_info = handle.package_info();
     let config = handle.config();

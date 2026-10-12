@@ -6,6 +6,11 @@ mod filesystem;
 #[cfg(desktop)]
 mod menu;
 mod process;
+mod window_chrome;
+
+pub(crate) use window_chrome::{
+    apply_window_chrome_action, window_chrome, WindowChrome, WindowChromeAction,
+};
 
 #[cfg(test)]
 pub(crate) use artifacts::runtime_platform_key_from;

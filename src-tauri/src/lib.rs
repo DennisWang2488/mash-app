@@ -87,6 +87,8 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            commands::window_chrome::get_window_chrome,
+            commands::window_chrome::window_chrome_action,
             commands::catalog::get_servants,
             commands::catalog::get_craft_essences,
             commands::catalog::get_mystic_codes,
