@@ -10,7 +10,7 @@ param(
     [string]$CvCode = '',
     [string]$CvRuntime = '',
     [string]$Platform,
-    [string]$Channel = $(if ($env:RELEASE_CHANNEL) { $env:RELEASE_CHANNEL } else { 'stable' }),
+    [string]$Channel = $(if ($env:RELEASE_CHANNEL) { $env:RELEASE_CHANNEL } else { 'windows-stable' }),
     [ValidatePattern('^[A-Za-z0-9._/-]+$')][string]$Remote = 'origin',
     [string]$Python,
     [switch]$Installer,

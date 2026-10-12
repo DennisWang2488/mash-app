@@ -2511,6 +2511,13 @@ fn windows_runtime_manifest_and_installer_are_configured() {
         config["bundle"]["windows"]["nsis"]["installMode"],
         "currentUser"
     );
+    assert_eq!(
+        config["plugins"]["updater"]["endpoints"],
+        serde_json::json!(["https://mash.xiaotongx.com/mash/releases/windows-stable/latest.json"])
+    );
+    assert!(config["plugins"]["updater"]["pubkey"]
+        .as_str()
+        .is_some_and(|key| !key.is_empty()));
     for name in ["adb.exe", "AdbWinApi.dll", "AdbWinUsbApi.dll"] {
         let contents = fs::read(root.join("resources/adb").join(name)).unwrap();
         assert!(

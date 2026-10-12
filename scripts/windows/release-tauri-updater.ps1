@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$Channel = $(if ($env:RELEASE_CHANNEL) { $env:RELEASE_CHANNEL } else { 'stable' }))
+param([string]$Channel = $(if ($env:RELEASE_CHANNEL) { $env:RELEASE_CHANNEL } else { 'windows-stable' }))
 . (Join-Path $PSScriptRoot 'common.ps1')
 Assert-ReleaseEnvironment -Signing
 if ($Channel -notmatch '^[A-Za-z0-9._-]+$') { throw 'Invalid channel.' }

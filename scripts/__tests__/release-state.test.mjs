@@ -135,7 +135,7 @@ test("Windows full release runs offline through CV, updater and installer public
   const uploads = f.read("uploads.log");
   const order = ["runtime/mash-cv/runtime/windows-x86_64/", "runtime/mash-cv/code/",
     "releases/versions/v1.1.0/windows-x86_64/", "releases/versions/v1.1.0/latest.json",
-    "releases/stable/latest.json", "downloads/versions/", "downloads/latest/"];
+    "releases/windows-stable/latest.json", "downloads/versions/", "downloads/latest/"];
   let offset = -1;
   for (const key of order) {
     const next = uploads.indexOf(key, offset + 1);

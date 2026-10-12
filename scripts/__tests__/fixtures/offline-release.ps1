@@ -33,7 +33,7 @@ function poetry {
 function aws {
     if ($args[0] -eq 's3' -and $args[1] -eq 'cp') {
         Add-Content -LiteralPath $global:uploadLog -Value $args[3]
-        if ($args[3] -like '*/releases/stable/latest.json') { $global:publishedManifest = $args[2] }
+        if ($args[3] -like '*/releases/windows-stable/latest.json') { $global:publishedManifest = $args[2] }
     }
     $global:LASTEXITCODE = 0
 }

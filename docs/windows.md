@@ -110,11 +110,12 @@ $env:AWS_PROFILE = 'mash' # 可省略，届时使用 AWS CLI 默认凭据链
 如果发布变量由 mise 管理，可使用
 `mise exec -- powershell -NoProfile -File scripts/windows/release.ps1 ...`。
 `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` 按私钥的实际密码设置。
-`R2_PREFIX` 默认 `mash`，`RELEASE_CHANNEL` 默认 `stable`，updater 与编排的
+`R2_PREFIX` 默认 `mash`，Windows 的 `RELEASE_CHANNEL` 默认 `windows-stable`，updater 与编排的
 `-Channel <name>` 可覆盖 channel。发布脚本不输出私钥或凭据内容。
 
 完整发布包含测试、日志定稿、CV 上传与清单更新、App 版本、updater、可选
-安装包下载和 Git 推送。版本号均为示例，实际值必须满足发布检查：
+安装包下载和 Git 推送。Windows updater 使用独立的 `windows-stable` channel；macOS 保持 `stable`。
+版本号均为示例，实际值必须满足发布检查：
 
 ```powershell
 # 只读计划：允许工作区有未提交改动，不写文件、不提交、不上传
