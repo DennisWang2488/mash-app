@@ -25,7 +25,7 @@ WebView2 bootstrapper；缺少 WebView2 时，安装仍需联网下载运行时�
 | `release-cv-runtime.ps1` | 上传 runtime、更新清单、commit 和平台 tag |
 | `build-windows.ps1` | 检查并构建 NSIS，`-Unsigned` 用于本地验证 |
 | `release-tauri-updater.ps1` | 构建签名 NSIS 并合并、发布 updater manifest |
-| `release-installer.ps1` | 发布版本化和 latest 的直接安装包下载 |
+| `release-installer.ps1` | 发布版本化和 latest 的直接安装包下载；`-Unsigned` 发布手动安装包，不改 updater |
 | `prepare-windows-adb.ps1` | 获取并校验固定版本 Windows ADB |
 | `generate-icons.ps1` | 使用 Tauri CLI 从源图片生成应用图标 |
 
@@ -140,6 +140,8 @@ updater 构建仍会运行 `build-windows.ps1` 的必要检查。
 ./scripts/windows/bump-app-version.ps1 0.16.0
 ./scripts/windows/release-tauri-updater.ps1
 ./scripts/windows/release-installer.ps1 -SkipBuild
+# 没有 updater 私钥时，构建并发布未签名的手动安装包；不更新 stable/latest.json
+./scripts/windows/release-installer.ps1 -Unsigned
 ```
 
 runtime 发布可使用已选择的同版本号补充 Windows 平台，但不会覆盖已有

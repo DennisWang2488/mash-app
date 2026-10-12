@@ -3,7 +3,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 // Select the output of the native build, without scanning retained old bundles.
-export function selectUpdaterArtifact(bundleDir, config, target) {
+export function selectUpdaterArtifact(bundleDir, config, target, requireSignature = true) {
   const architectures = { "windows-x86_64": "x64", "windows-aarch64": "arm64" };
   let relative;
   if (Object.hasOwn(architectures, target)) {
@@ -15,7 +15,8 @@ export function selectUpdaterArtifact(bundleDir, config, target) {
     throw new Error(`Unsupported updater target: ${target}`);
   }
   const artifact = path.resolve(bundleDir, relative);
-  for (const file of [artifact, `${artifact}.sig`]) {
+  const requiredFiles = requireSignature ? [artifact, `${artifact}.sig`] : [artifact];
+  for (const file of requiredFiles) {
     if (!fs.existsSync(file) || !fs.statSync(file).isFile()) {
       throw new Error(`Expected updater file not found: ${file}`);
     }
@@ -27,5 +28,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const [bundleDir, configPath, target] = process.argv.slice(2);
   const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
   // Forward slashes also keep basename and file reads working under Git Bash.
-  process.stdout.write(selectUpdaterArtifact(bundleDir, config, target).split(path.sep).join("/"));
+  process.stdout.write(selectUpdaterArtifact(bundleDir, config, target, process.argv[5] !== "--unsigned").split(path.sep).join("/"));
 }

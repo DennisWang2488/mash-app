@@ -1,14 +1,16 @@
 [CmdletBinding()]
-param([switch]$SkipBuild)
+param([switch]$SkipBuild, [switch]$Unsigned)
 . (Join-Path $PSScriptRoot 'common.ps1')
 Push-Location $repoRoot
 try {
-    Assert-ReleaseEnvironment -Signing
+    Assert-ReleaseEnvironment -Signing:(-not $Unsigned)
     $config = Assert-AppRelease
     $platform = Get-WindowsPlatform
-    if (-not $SkipBuild) { & (Join-Path $PSScriptRoot 'build-windows.ps1') }
+    if (-not $SkipBuild) { & (Join-Path $PSScriptRoot 'build-windows.ps1') -Unsigned:$Unsigned }
     $bundle = Join-Path $repoRoot 'src-tauri/target/release/bundle'
-    $file = Invoke-Native node @('scripts/shared/updater-artifact.mjs', $bundle, 'src-tauri/tauri.conf.json', $platform)
+    $artifactArguments = @('scripts/shared/updater-artifact.mjs', $bundle, 'src-tauri/tauri.conf.json', $platform)
+    if ($Unsigned) { $artifactArguments += '--unsigned' }
+    $file = Invoke-Native node $artifactArguments
     $name = Split-Path -Leaf $file
     $latestName = $name.Replace("_$($config.version)_", '_')
     if ($latestName -eq $name) { throw 'Cannot derive latest installer filename.' }

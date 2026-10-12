@@ -231,7 +231,7 @@ Windows 原生 runtime 使用 `scripts/windows/release-cv-runtime.ps1 <version>`
 
 ## Windows 安装包下载
 
-`scripts/windows/release-installer.ps1` 从干净的 app tag 构建签名 NSIS 安装包，
+`scripts/windows/release-installer.ps1` 从干净的 app tag 构建 NSIS 安装包，
 先上传并验证版本文件，再覆盖稳定下载链接：
 
 ```text
@@ -243,6 +243,14 @@ mash/downloads/latest/Mash_x64-setup.exe
 此选项。只选择当前版本和架构的 `.exe` 与 `.sig`，不会回退到旧安装包。
 版本文件使用 immutable 长缓存，latest 使用 `no-cache`。Windows 下载入口保留
 所有历史版本；macOS DMG 的保留数量策略保持不变。
+
+默认发布签名安装包。没有 Tauri updater 私钥时，可以显式使用 `-Unsigned`
+构建并发布可手动安装的 `.exe`；这不会生成签名、不会上传 updater artifact，
+也不会修改 `stable/latest.json`：
+
+```powershell
+./scripts/windows/release-installer.ps1 -Unsigned
+```
 
 ## Runtime Manifest
 

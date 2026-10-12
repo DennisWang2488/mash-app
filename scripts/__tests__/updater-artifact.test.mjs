@@ -57,6 +57,14 @@ test("missing current artifact or signature never falls back to an older release
   assert.throws(() => selectUpdaterArtifact(root, config, "linux-x86_64"), /Unsupported/);
 });
 
+test("unsigned installer selection still requires the current native bundle", t => {
+  const root = fixture(t);
+  write(root, "nsis/Mash_0.13.0_x64-setup.exe");
+  const current = write(root, "nsis/Mash_0.14.0_x64-setup.exe", false);
+  assert.equal(selectUpdaterArtifact(root, config, "windows-x86_64", false), current);
+  assert.throws(() => selectUpdaterArtifact(root, config, "windows-aarch64", false), /0\.14\.0_arm64-setup\.exe/);
+});
+
 test("the publisher CLI preserves paths with spaces and emits shell-compatible separators", t => {
   const root = fixture(t);
   const expected = write(root, "nsis/Mash_0.14.0_x64-setup.exe");
