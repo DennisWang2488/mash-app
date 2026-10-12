@@ -15,6 +15,13 @@ Expand-Archive -LiteralPath $archive -DestinationPath $cache -Force
 $destination = Join-Path $repoRoot 'src-tauri/resources/adb'
 New-Item -ItemType Directory -Path $destination -Force | Out-Null
 foreach ($name in @('adb.exe', 'AdbWinApi.dll', 'AdbWinUsbApi.dll', 'NOTICE.txt')) {
-    Copy-Item -LiteralPath (Join-Path $cache "platform-tools/$name") -Destination (Join-Path $destination $name) -Force
+    $source = Join-Path $cache "platform-tools/$name"
+    $target = Join-Path $destination $name
+    if ((Test-Path -LiteralPath $target) -and
+        (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash -eq
+        (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash) {
+        continue
+    }
+    Copy-Item -LiteralPath $source -Destination $target -Force
 }
 Write-Output 'Windows ADB 36.0.2 installed and verified.'
