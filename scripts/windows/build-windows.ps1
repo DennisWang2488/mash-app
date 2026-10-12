@@ -4,8 +4,7 @@ param(
     [string]$Python,
     [switch]$Unsigned
 )
-$ErrorActionPreference = 'Stop'
-$repoRoot = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot 'common.ps1')
 if ([Environment]::OSVersion.Platform -ne 'Win32NT') { throw 'Run this script on Windows.' }
 Push-Location $repoRoot
 try {
@@ -15,7 +14,6 @@ try {
             Push-Location (Join-Path $repoRoot 'sidecar/mash_cv')
             try { & $Python -m pytest } finally { Pop-Location }
             if ($LASTEXITCODE -ne 0) { throw 'CV tests failed.' }
-            & $Python (Join-Path $repoRoot 'sidecar/mash_cv/build_sidecar.py')
         } else {
             Push-Location (Join-Path $repoRoot 'sidecar/mash_cv')
             try {
@@ -23,10 +21,9 @@ try {
                 if ($LASTEXITCODE -ne 0) { throw 'Installing CV dependencies failed.' }
                 poetry run pytest
                 if ($LASTEXITCODE -ne 0) { throw 'CV tests failed.' }
-                poetry run python build_sidecar.py
             } finally { Pop-Location }
         }
-        if ($LASTEXITCODE -ne 0) { throw 'Building Windows CV artifacts failed.' }
+        & (Join-Path $PSScriptRoot 'build-cv.ps1') -Python $Python -SkipInstall
     }
     pnpm test:scripts
     if ($LASTEXITCODE -ne 0) { throw 'Release-script tests failed.' }

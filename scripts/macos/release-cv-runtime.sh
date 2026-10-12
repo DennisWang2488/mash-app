@@ -11,15 +11,15 @@ PLATFORM=""
 usage() {
   cat <<'EOF'
 Usage:
-  R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/release-cv-runtime.sh [--platform <platform>] <runtime-version>
+  R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/macos/release-cv-runtime.sh [--platform <platform>] <runtime-version>
 
 Updates [mash_cv].runtime in versions.toml, builds the mash-cv runtime zip,
 uploads it to R2, updates src-tauri/resources/runtime-manifest.json, commits
 the change, and tags HEAD as cv-runtime/<platform>/<runtime-version>.
 
 Examples:
-  scripts/release-cv-runtime.sh 0.2.2
-  scripts/release-cv-runtime.sh --platform darwin-aarch64 0.2.2
+  scripts/macos/release-cv-runtime.sh 0.2.2
+  scripts/macos/release-cv-runtime.sh --platform darwin-aarch64 0.2.2
 
 Required environment:
   R2_ENDPOINT       Cloudflare R2 S3 endpoint, e.g. https://<accountid>.r2.cloudflarestorage.com
@@ -53,8 +53,7 @@ detect_platform() {
   arch="$(uname -m)"
   case "$os" in
     darwin) platform_os="darwin" ;;
-    mingw*|msys*|cygwin*) platform_os="windows" ;;
-    *) platform_os="$os" ;;
+    *) fail "run this script on macOS; use scripts/windows/release-cv-runtime.ps1 on Windows" ;;
   esac
   case "$arch" in
     arm64) platform_arch="aarch64" ;;
@@ -130,13 +129,14 @@ require_cmd stat
 require_cmd uname
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 if [[ -z "$PLATFORM" ]]; then
   PLATFORM="$(detect_platform)"
 fi
 [[ "$PLATFORM" =~ ^[A-Za-z0-9._-]+-[A-Za-z0-9._-]+$ ]] || fail "invalid platform: $PLATFORM"
+[[ "$PLATFORM" == "$(detect_platform)" ]] || fail "platform must match the native macOS build host"
 
 TAG="cv-runtime/$PLATFORM/$VERSION"
 ARTIFACT="mash-cv-runtime-${PLATFORM}-v${VERSION}.zip"
@@ -174,7 +174,7 @@ NODE
 
 (
   cd sidecar/mash_cv
-  MASH_CV_RUNTIME_VERSION="$VERSION" ./build_sidecar.sh --runtime-only
+  MASH_CV_RUNTIME_VERSION="$VERSION" "$REPO_ROOT/scripts/macos/build-cv.sh" --runtime-only
 )
 
 [[ -f "$DIST_PATH" ]] || fail "runtime artifact not found: $DIST_PATH"

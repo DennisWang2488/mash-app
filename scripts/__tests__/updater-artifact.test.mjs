@@ -5,10 +5,10 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
-import { selectUpdaterArtifact } from "../updater-artifact.mjs";
+import { selectUpdaterArtifact } from "../shared/updater-artifact.mjs";
 
 const config = { productName: "Mash", version: "0.14.0" };
-const helper = fileURLToPath(new URL("../updater-artifact.mjs", import.meta.url));
+const helper = fileURLToPath(new URL("../shared/updater-artifact.mjs", import.meta.url));
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 const appConfig = JSON.parse(fs.readFileSync(path.join(repoRoot, "src-tauri/tauri.conf.json"), "utf8"));
 const currentInstaller = `${appConfig.productName}_${appConfig.version}_x64-setup.exe`;
@@ -70,7 +70,7 @@ test("Bash publisher uses the current artifact and reads its signature with spac
   const root = fixture(t);
   write(root, "nsis/Mash_0.13.0_x64-setup.exe");
   write(root, `nsis/${currentInstaller}`);
-  const source = fs.readFileSync(new URL("../release-tauri-updater.sh", import.meta.url), "utf8").replaceAll("\r\n", "\n");
+  const source = fs.readFileSync(new URL("../macos/release-tauri-updater.sh", import.meta.url), "utf8").replaceAll("\r\n", "\n");
   const selection = source.slice(source.indexOf('ARTIFACT_FILE="$(node'), source.indexOf('\nPUB_DATE='));
   const bash = process.platform === "win32" ? path.join(process.env.ProgramFiles, "Git/bin/bash.exe") : "bash";
   const script = 'set -euo pipefail\nfail() { exit 1; }\nBUNDLE_DIR="$1"\n' +
@@ -87,11 +87,11 @@ test("PowerShell publisher selects the current artifact despite retained old sig
   const root = fixture(t);
   write(root, "nsis/Mash_0.13.0_x64-setup.exe");
   write(root, `nsis/${currentInstaller}`);
-  const source = fs.readFileSync(new URL("../release-tauri-updater.ps1", import.meta.url), "utf8");
-  const selection = source.slice(source.indexOf("    $artifact = node"), source.indexOf("    $prefix ="));
-  const script = `$ErrorActionPreference = 'Stop'; $bundle = '${root.replaceAll("'", "''")}'; ` +
+  const source = fs.readFileSync(new URL("../windows/release-tauri-updater.ps1", import.meta.url), "utf8");
+  const selection = source.slice(source.indexOf("    $artifact = Invoke-Native"), source.indexOf("    $prefix ="));
+  const script = `$ErrorActionPreference = 'Stop'; . '${path.join(repoRoot, "scripts/windows/common.ps1").replaceAll("'", "''")}'; $bundle = '${root.replaceAll("'", "''")}'; ` +
     `$target = 'windows-x86_64';\n${selection}\nSplit-Path -Leaf $artifact\n$signature`;
-  const output = execFileSync("powershell.exe", ["-NoProfile", "-Command", script],
+  const output = execFileSync("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script],
     { cwd: repoRoot, encoding: "utf8", windowsHide: true });
   assert.equal(output.replaceAll("\r\n", "\n").trim(), `${currentInstaller}\nsignature`);
 });

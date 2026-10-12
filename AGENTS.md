@@ -48,7 +48,8 @@ src-tauri/                        # Tauri / Rust backend
 sidecar/mash_cv/                  # Python image recognition process (Poetry)
   mash_cv/                        # Package source (cv.py REPL, stream.py, region_tool.py)
   tests/                          # pytest suite + sample screenshots/templates
-  build_sidecar.sh                # PyInstaller --onedir build script
+  build_sidecar.py                # Shared native PyInstaller builder
+scripts/{macos,windows,shared}/   # Platform entry points and shared release helpers
 ```
 
 ## Tech Stack
@@ -91,7 +92,7 @@ Sidecar commands (run from `sidecar/mash_cv/`):
 ```bash
 poetry install              # Install Python deps
 poetry run pytest           # Run the CV test suite
-bash build_sidecar.sh       # Build runtime base zip + lightweight code zip artifacts
+poetry run python build_sidecar.py # Build runtime base zip + lightweight code zip artifacts
 ```
 
 ## Testing

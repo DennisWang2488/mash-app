@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { compareVersions, mergeUpdaterManifest } from "../updater-manifest.mjs";
+import { compareVersions, mergeUpdaterManifest } from "../shared/updater-manifest.mjs";
 
 const release = { version: "0.14.0", pubDate: "2026-10-02T12:00:00Z",
   target: "windows-x86_64", url: "https://example.com/windows.exe", signature: "win-signature" };

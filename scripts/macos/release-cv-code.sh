@@ -8,7 +8,7 @@ LONG_CACHE_CONTROL="${LONG_CACHE_CONTROL:-public, max-age=31536000, immutable}"
 usage() {
   cat <<'EOF'
 Usage:
-  R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/release-cv-code.sh x.y.z
+  R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/macos/release-cv-code.sh x.y.z
 
 Builds the mash-cv code zip, uploads it to R2, validates the R2 object and
 public URL, and prints the URL + SHA-256.
@@ -77,7 +77,7 @@ require_cmd curl
 require_cmd shasum
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 R2_PREFIX="${R2_PREFIX#/}"
@@ -90,7 +90,7 @@ URL="$RELEASE_BASE_URL/$OBJECT_KEY"
 
 (
   cd sidecar/mash_cv
-  MASH_CV_CODE_VERSION="$VERSION" ./build_sidecar.sh --code-only
+  MASH_CV_CODE_VERSION="$VERSION" "$REPO_ROOT/scripts/macos/build-cv.sh" --code-only
 )
 
 [[ -f "$DIST_PATH" ]] || fail "CV code artifact not found: $DIST_PATH"

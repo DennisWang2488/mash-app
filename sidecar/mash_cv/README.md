@@ -30,7 +30,7 @@ mash_cv/
   tests/
     test_cv.py
     test_integration.py
-  build_sidecar.sh
+  build_sidecar.py
 ```
 
 ## Run
@@ -127,10 +127,11 @@ poetry run pytest -v
 ## Build
 
 ```bash
-./build_sidecar.sh
+# From sidecar/mash_cv/ on macOS
+bash ../../scripts/macos/build-cv.sh
 ```
 
-`build_sidecar.sh` reads the default runtime/code versions from the repo-root
+The shared `build_sidecar.py` builder reads the default runtime/code versions from the repo-root
 `versions.toml`. Set `MASH_CV_RUNTIME_VERSION` or `MASH_CV_CODE_VERSION` only
 when you need a one-off override.
 
@@ -144,9 +145,22 @@ dist/mash-cv-code-v<codeVersion>.zip
 You can build either side independently:
 
 ```bash
-./build_sidecar.sh --runtime-only
-./build_sidecar.sh --code-only
+bash ../../scripts/macos/build-cv.sh --runtime-only
+bash ../../scripts/macos/build-cv.sh --code-only
 ```
+
+On Windows, use the native PowerShell entry points from the same directory:
+
+```powershell
+../../scripts/windows/build-cv.ps1
+../../scripts/windows/build-cv.ps1 -Mode runtime
+../../scripts/windows/build-cv.ps1 -Mode code
+```
+
+Both entry points install Poetry dependencies and invoke the same builder.
+Windows also accepts `-Python <path>` to use an existing Python environment
+with the required dependencies installed. ZIP outputs stay in this sidecar's
+`dist/` directory.
 
 The runtime zip contains the PyInstaller `--onedir` launcher, native
 dependencies, and OCR models under archive root `mash-cv-runtime/`. The code
@@ -168,7 +182,8 @@ the release host/CDN and update `src-tauri/resources/runtime-manifest.json` with
 - each platform's `runtimeUrl` / `runtimeSha256`
 - each platform's `codeUrl` / `codeSha256`
 
-If only Python code changed, run `./build_sidecar.sh --code-only`, bump only
+If only Python code changed, run `bash ../../scripts/macos/build-cv.sh --code-only`
+or `../../scripts/windows/build-cv.ps1 -Mode code`, bump only
 `mashCvCodeVersion`, and update only each platform's `codeUrl` / `codeSha256`.
 Keep the existing runtime version, URL, and SHA unchanged.
 

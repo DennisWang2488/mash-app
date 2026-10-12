@@ -10,7 +10,7 @@ RETAIN_VERSIONED_DMG_COUNT="${RETAIN_VERSIONED_DMG_COUNT:-3}"
 usage() {
   cat <<'EOF'
 Usage:
-  R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/release-dmg.sh
+  R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/macos/release-dmg.sh
 
 Builds the macOS DMG installer and publishes it to R2:
   mash/downloads/versions/Mash_<version>_<arch>.dmg
@@ -96,7 +96,7 @@ require_cmd stat
 require_cmd touch
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 VERSION="$(

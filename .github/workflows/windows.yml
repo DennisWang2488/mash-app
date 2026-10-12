@@ -37,12 +37,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           poetry run pytest
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          poetry run python build_sidecar.py
+          ../../scripts/windows/build-cv.ps1 -SkipInstall
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           poetry run pytest tests/test_windows_runtime.py
       - name: Test and build Windows installer
         shell: pwsh
-        run: ./scripts/build-windows.ps1 -Unsigned
+        run: ./scripts/windows/build-windows.ps1 -Unsigned
       - uses: actions/upload-artifact@v4
         with:
           name: mash-windows-x64

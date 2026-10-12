@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/bump-cv-code-version.sh x.y.z
+  scripts/macos/bump-cv-code-version.sh x.y.z
 
 Updates [mash_cv].code in versions.toml, then commits and tags the
 current HEAD as cv-code/x.y.z.
@@ -39,7 +39,7 @@ require_cmd git
 require_cmd node
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 if [[ -n "$(git status --porcelain)" ]]; then

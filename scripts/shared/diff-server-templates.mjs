@@ -4,7 +4,7 @@ import { readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const defaultIgnoredServerDirs = new Set(["shared"]);
 
 function parseArgs(argv) {
@@ -59,7 +59,7 @@ function readValue(argv, index, flag) {
 }
 
 function printHelp() {
-  console.log(`Usage: node scripts/diff-server-templates.mjs [options]
+  console.log(`Usage: node scripts/shared/diff-server-templates.mjs [options]
 
 Compare template files across server resource bundles.
 The shared resource bundle is skipped by default; pass it explicitly via

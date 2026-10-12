@@ -58,7 +58,7 @@ sidecar/                     # Python image recognition process (Poetry-managed)
       stream.py              # scrcpy client (PyAV H.264 decoder)
       region_tool.py         # CLI helper for extracting template regions
     tests/                   # pytest suite (+ sample screenshots & templates)
-    build_sidecar.sh         # PyInstaller --onedir build script
+    build_sidecar.py         # Shared native PyInstaller builder
     pyproject.toml           # Poetry dependencies
 ```
 
@@ -104,33 +104,49 @@ Version numbers are managed in `versions.toml` and use `x.x.x` format. Distribut
 Build local sidecar artifacts for testing:
 
 ```bash
-cd sidecar/mash_cv
-bash build_sidecar.sh
+bash scripts/macos/build-cv.sh
 ```
 
 Release entry points:
 
 ```bash
 # Full release orchestration (read-only plan by default)
-mise exec -- scripts/release.sh 0.2.2
+mise exec -- scripts/macos/release.sh 0.2.2
 
 # Execute the planned release; add --dmg and --push when wanted
-mise exec -- scripts/release.sh 0.2.2 --publish
+mise exec -- scripts/macos/release.sh 0.2.2 --publish
 
 # App updater release: bump versions, commit, and tag vX.Y.Z
-scripts/bump-app-version.sh 0.2.2
+scripts/macos/bump-app-version.sh 0.2.2
 
-# CV code release: push tag, GitHub Actions uploads to R2
-scripts/bump-cv-code-version.sh 0.2.2
-git tag cv-code/0.2.2
+# CV code release: bump and create the tag
+scripts/macos/bump-cv-code-version.sh 0.2.2
 git push origin cv-code/0.2.2
 
 # CV code release from the local machine
-R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/release-cv-code.sh 0.2.2
+R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/macos/release-cv-code.sh 0.2.2
 
 # CV runtime release: build, upload to R2, update manifest, commit, and tag
-R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/release-cv-runtime.sh 0.2.2
+R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/macos/release-cv-runtime.sh 0.2.2
 ```
+
+Scripts are grouped under `scripts/macos/` (Bash), `scripts/windows/`
+(PowerShell), and `scripts/shared/` (portable Node helpers). Run platform entry
+points resolve the repository root themselves; macOS icon generation accepts an
+explicit project root and source image.
+
+Windows equivalents run natively without Git Bash or WSL:
+
+```powershell
+./scripts/windows/build-cv.ps1
+pnpm build:windows -Unsigned
+# Read-only plan; add -Publish to execute, -Installer for direct downloads,
+# and -Push to push release commits and tags.
+pnpm release:windows 0.16.0 -CvCode 0.4.27 -CvRuntime 0.3.0 -Installer
+```
+
+See [Windows release instructions](docs/windows.md) for each individual entry
+point and [distribution details](docs/distribution.md) for R2 paths and signing.
 
 Running the sidecar as PyInstaller `--onedir` avoids re-extracting dylibs on every launch, cutting warm-start time to well under a second after the runtime is installed.
 

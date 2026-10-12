@@ -14,6 +14,9 @@ mash/
         darwin-aarch64/
           mash.app.tar.gz
           mash.app.tar.gz.sig
+        windows-x86_64/
+          Mash_0.2.2_x64-setup.exe
+          Mash_0.2.2_x64-setup.exe.sig
         latest.json
     stable/
       latest.json
@@ -21,8 +24,10 @@ mash/
   downloads/
     latest/
       Mash_aarch64.dmg
+      Mash_x64-setup.exe
     versions/
       Mash_0.5.3_aarch64.dmg
+      Mash_0.2.2_x64-setup.exe
 
   runtime/
     mash-cv/
@@ -31,6 +36,8 @@ mash/
       runtime/
         darwin-aarch64/
           mash-cv-runtime-darwin-aarch64-v0.2.2.zip
+        windows-x86_64/
+          mash-cv-runtime-windows-x86_64-v0.2.2.zip
 ```
 
 在 `s3://mash/mash/...` 中，第一个 `mash` 是 bucket 名，第二个 `mash` 是 object prefix。
@@ -56,19 +63,24 @@ code = "0.2.2"
 
 ## 完整发布编排
 
-`scripts/release.sh` 串联测试、更新日志、CV artifact、runtime manifest、App
+平台脚本位于 `scripts/macos/` 与 `scripts/windows/`；跨平台 Node 工具位于
+`scripts/shared/`。`pnpm templates:diff` 和 `pnpm test:scripts` 已引用新路径。
+以下 Bash 示例用于 macOS，Windows 原生 PowerShell 完整流程见
+[Windows 构建与发布](windows.md)。
+
+`scripts/macos/release.sh` 串联测试、更新日志、CV artifact、runtime manifest、App
 版本、updater、DMG 与 Git refs。默认仅输出只读计划；添加 `--publish` 后才会
 提交、打 tag 或上传，添加 `--push` 后才会推送 Git refs。
 
 ```bash
 # 检查发布计划
-mise exec -- scripts/release.sh 0.2.2
+mise exec -- scripts/macos/release.sh 0.2.2
 
 # 只发布 App updater
-mise exec -- scripts/release.sh 0.2.2 --publish
+mise exec -- scripts/macos/release.sh 0.2.2 --publish
 
 # 同时发布 CV code、DMG，并在全部验证通过后推送 Git refs
-mise exec -- scripts/release.sh 0.2.2 \
+mise exec -- scripts/macos/release.sh 0.2.2 \
   --cv-code 0.2.2 \
   --dmg \
   --push \
@@ -78,6 +90,19 @@ mise exec -- scripts/release.sh 0.2.2 \
 发布前工作区必须干净，`CHANGELOG.md` 中必须有 `## 未发布` 或目标版本标题。
 脚本会检查自上次发布以来的 CV code/runtime 相关改动；检测到改动却未提供
 对应版本号时会停止实际发布。CV runtime 只在显式传入 `--cv-runtime` 时发布。
+
+Windows 对应入口：
+
+```powershell
+# 只读计划
+./scripts/windows/release.ps1 0.16.0 -CvCode 0.4.27 -CvRuntime 0.3.0 -Installer
+# 执行测试、日志、版本、CV 发布、updater、安装包下载与 Git 推送
+./scripts/windows/release.ps1 0.16.0 -CvCode 0.4.27 -CvRuntime 0.3.0 -Installer -Push -Publish
+```
+
+Windows 的 `-Installer` 发布 NSIS `.exe`；macOS 的 `--dmg` 发布 DMG。
+Windows 编排在新版本检测到 CV 改动时要求显式版本号；对同一 `vX.Y.Z` tag
+补发 Windows 时不修改日志、版本或 CV 清单，直接合并同版本 updater 平台。
 
 ## App 发布
 
@@ -99,14 +124,14 @@ mash/releases/versions/v0.2.2/darwin-aarch64/mash.app.tar.gz
 发布流程：
 
 ```bash
-scripts/bump-app-version.sh 0.2.2
+scripts/macos/bump-app-version.sh 0.2.2
 git push --follow-tags
 ```
 
 应用 updater 使用本地发布入口：
 
 ```bash
-R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/release-tauri-updater.sh
+R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/macos/release-tauri-updater.sh
 ```
 
 本地脚本要求当前 commit 恰好位于 `vX.Y.Z` tag 且 worktree 干净。
@@ -134,7 +159,7 @@ https://mash.xiaotongx.com/mash/downloads/versions/Mash_0.5.3_aarch64.dmg
 发布流程：
 
 ```bash
-R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/release-dmg.sh
+R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/macos/release-dmg.sh
 ```
 
 ## CV Code 发布
@@ -144,15 +169,15 @@ CV code package 包含轻量 Python source，是 `sidecar/mash_cv/mash_cv/` 下�
 发布流程：
 
 ```bash
-scripts/bump-cv-code-version.sh 0.2.2
-git tag cv-code/0.2.2
+scripts/macos/bump-cv-code-version.sh 0.2.2
 git push origin cv-code/0.2.2
 ```
 
-推送 `cv-code/*` tag 会触发 `.github/workflows/release-cv-code.yml`，调用 `scripts/release-cv-code.sh`。同一脚本也可本地执行：
+版本更新脚本会创建 `cv-code/*` tag；当前仓库没有 CV code 上传 workflow，
+请使用本地发布入口上传（仅推送 tag 不会上传）：
 
 ```bash
-R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/release-cv-code.sh 0.2.2
+R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/macos/release-cv-code.sh 0.2.2
 ```
 
 脚本构建：
@@ -167,7 +192,11 @@ sidecar/mash_cv/dist/mash-cv-code-v0.2.2.zip
 mash/runtime/mash-cv/code/mash-cv-code-v0.2.2.zip
 ```
 
-workflow summary 会打印公开 URL 和 SHA-256。请用这些值更新当前平台的 `src-tauri/resources/runtime-manifest.json`，包括 `codeUrl`、`codeSha256` 与 `mashCvCodeVersion`。
+发布脚本会打印公开 URL 和 SHA-256。请用这些值更新当前平台的 `src-tauri/resources/runtime-manifest.json`，包括 `codeUrl`、`codeSha256` 与 `mashCvCodeVersion`。完整发布编排会自动完成这一步。
+
+Windows 使用 `scripts/windows/bump-cv-code-version.ps1 <version>` 和
+`scripts/windows/release-cv-code.ps1 <version>`。code ZIP 内容由共享 Python
+builder 生成，与平台无关；不要重复发布同版本但不同内容的 ZIP。
 
 ## CV Runtime 发布
 
@@ -181,7 +210,7 @@ CV runtime package 包含 PyInstaller onedir build、native dependency、model �
 发布流程：
 
 ```bash
-R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/release-cv-runtime.sh 0.2.2
+R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/macos/release-cv-runtime.sh 0.2.2
 ```
 
 脚本将：
@@ -195,6 +224,25 @@ R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/release-cv-runtime.sh
 7. 为 commit 打上 `cv-runtime/<platform>/<version>` tag。
 
 上传前脚本会打印 artifact 名称、大小、S3 target 与公开 URL；上传后打印耗时和平均上传速度。
+
+Windows 原生 runtime 使用 `scripts/windows/release-cv-runtime.ps1 <version>`，
+也执行构建、上传、远端验证、清单更新、commit 和平台 tag。
+`-Platform` 必须匹配原生 MSVC host；不支持把本机 ZIP 标记成另一平台。
+
+## Windows 安装包下载
+
+`scripts/windows/release-installer.ps1` 从干净的 app tag 构建签名 NSIS 安装包，
+先上传并验证版本文件，再覆盖稳定下载链接：
+
+```text
+mash/downloads/versions/Mash_0.16.0_x64-setup.exe
+mash/downloads/latest/Mash_x64-setup.exe
+```
+
+`-SkipBuild` 复用已经构建的当前版本签名产物，完整编排在 updater 成功后使用
+此选项。只选择当前版本和架构的 `.exe` 与 `.sig`，不会回退到旧安装包。
+版本文件使用 immutable 长缓存，latest 使用 `no-cache`。Windows 下载入口保留
+所有历史版本；macOS DMG 的保留数量策略保持不变。
 
 ## Runtime Manifest
 

@@ -1,7 +1,6 @@
 [CmdletBinding()]
 param()
-$ErrorActionPreference = 'Stop'
-$repoRoot = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot 'common.ps1')
 $cache = Join-Path $repoRoot 'src-tauri/target/windows-adb'
 $archive = Join-Path $cache 'platform-tools_r36.0.2-win.zip'
 $expectedSha = 'b024d4f319d6ad3004de1ba7b96a5c7c5f3512e8b14126308d598b4ab93dcead'

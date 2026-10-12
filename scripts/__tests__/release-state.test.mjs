@@ -1,0 +1,156 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { execFileSync, spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import test from "node:test";
+
+const repo = fileURLToPath(new URL("../../", import.meta.url));
+const helper = path.join(repo, "scripts/shared/release-state.mjs");
+const windows = process.platform === "win32";
+const ps = (value) => `'${value.replaceAll("'", "''")}'`;
+const invoke = (command, args, cwd) => execFileSync(command, args, {
+  cwd, encoding: "utf8", windowsHide: true, stdio: "pipe",
+});
+function fixture(t) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "mash release 中文 "));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const write = (name, text) => {
+    const file = path.join(root, name);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, text);
+  };
+  write("versions.toml", '[app]\nversion = "1.0.0"\n[mash_cv]\nruntime = "1.0.0"\ncode = "1.0.0"\n');
+  write("src-tauri/tauri.conf.json", JSON.stringify({ version: "1.0.0", productName: "Mash" }));
+  write("src-tauri/Cargo.toml", '[package]\nname = "mash"\nversion = "1.0.0"\n');
+  write("src-tauri/Cargo.lock", '[[package]]\nname = "other"\nversion = "1.0.0"\n[[package]]\nname = "mash"\nversion = "1.0.0"\n');
+  write("src-tauri/resources/runtime-manifest.json", JSON.stringify({ mashCvRuntimeVersion: "1.0.0", mashCvCodeVersion: "1.0.0", platforms: {
+    "darwin-aarch64": { runtimeUrl: "https://example.invalid/runtime.zip", runtimeSha256: "a".repeat(64), codeUrl: "https://example.invalid/code.zip", codeSha256: "b".repeat(64) },
+  } }));
+  write("CHANGELOG.md", "# Changes\n\n## 未发布\n\nRelease notes\n");
+  write("sidecar/mash_cv/build_sidecar.py", "# fixture builder\n");
+  write(".gitignore", "sidecar/mash_cv/dist/\nsrc-tauri/target/\n*.log\n");
+  fs.cpSync(path.join(repo, "scripts/windows"), path.join(root, "scripts/windows"), { recursive: true });
+  fs.cpSync(path.join(repo, "scripts/shared"), path.join(root, "scripts/shared"), { recursive: true });
+  const git = (...args) => invoke("git", args, root).trim();
+  git("init", "--quiet");
+  git("config", "core.autocrlf", "false");
+  git("config", "user.name", "Release Test");
+  git("config", "user.email", "test@example.invalid");
+  git("config", "commit.gpgsign", "false");
+  git("config", "tag.gpgsign", "false");
+  const commit = () => { git("add", "."); git("commit", "--quiet", "-m", "fixture"); };
+  commit();
+  git("tag", "cv-code/1.0.0");
+  git("tag", "v1.0.0");
+  const run = (...args) => invoke(process.execPath, [helper, ...args], root);
+  return { root, write, git, commit, run, read: name => fs.readFileSync(path.join(root, name), "utf8") };
+}
+
+test("app bump aligns four files and leaves unrelated lock packages untouched", t => {
+  const f = fixture(t);
+  f.run("version", "app", "1.1.0");
+  assert.equal(JSON.parse(f.run("versions")).app, "1.1.0");
+  assert.equal(JSON.parse(f.read("src-tauri/tauri.conf.json")).version, "1.1.0");
+  assert.match(f.read("src-tauri/Cargo.toml"), /version = "1.1.0"/);
+  assert.match(f.read("src-tauri/Cargo.lock"), /name = "other"\nversion = "1.0.0"/);
+  assert.match(f.read("src-tauri/Cargo.lock"), /name = "mash"\nversion = "1.1.0"/);
+});
+test("invalid bump or missing lock entry fails before changing version files", t => {
+  const f = fixture(t);
+  const original = f.read("versions.toml");
+  assert.throws(() => f.run("version", "app", "../bad"));
+  f.write("src-tauri/Cargo.lock", "invalid");
+  assert.throws(() => f.run("version", "app", "1.1.0"), /Missing mash package/);
+  assert.equal(f.read("versions.toml"), original);
+});
+test("CV manifest updates preserve other platforms and the other artifact fields", t => {
+  const f = fixture(t);
+  const mac = JSON.parse(f.read("src-tauri/resources/runtime-manifest.json")).platforms["darwin-aarch64"];
+  f.run("artifact", "runtime", "1.1.0", "windows-x86_64", "https://example.invalid/win.zip", "c".repeat(64));
+  f.run("artifact", "code", "1.2.0", "windows-x86_64", "https://example.invalid/code.zip", "d".repeat(64));
+  const doc = JSON.parse(f.read("src-tauri/resources/runtime-manifest.json"));
+  assert.deepEqual(doc.platforms["darwin-aarch64"], mac);
+  assert.equal(doc.platforms["windows-x86_64"].runtimeSha256, "c".repeat(64));
+  assert.equal(doc.mashCvCodeVersion, "1.2.0");
+  assert.throws(() => f.run("artifact", "code", "1.3.0", "windows-x86_64", "https://example.invalid/x", "bad"), /Invalid SHA/);
+});
+test("release planning is read-only, detects changed builder and enforces the runtime gate", t => {
+  const f = fixture(t);
+  f.write("sidecar/mash_cv/build_sidecar.py", "changed builder");
+  f.commit();
+  const before = f.git("rev-parse", "HEAD");
+  const plan = JSON.parse(f.run("plan", "1.1.0", "-", "-", "windows-x86_64", "plan"));
+  assert.equal(plan.runtimeChanged, true);
+  assert.throws(() => f.run("plan", "1.1.0", "-", "-", "windows-x86_64", "publish"), /CV runtime changes detected/);
+  assert.equal(f.git("status", "--porcelain"), "");
+  assert.equal(f.git("rev-parse", "HEAD"), before);
+});
+test("adding a second platform reuses the exact app tag and refuses CV mutations", t => {
+  const f = fixture(t);
+  assert.equal(JSON.parse(f.run("plan", "1.0.0", "-", "-", "windows-x86_64", "publish")).sameVersion, true);
+  assert.throws(() => f.run("plan", "1.0.0", "1.1.0", "-", "windows-x86_64", "publish"), /requires a new app version/);
+  assert.throws(() => f.run("plan", "0.9.0", "-", "-", "windows-x86_64", "plan"), /backwards/);
+});
+test("changelog finalization handles CRLF and preserves the release notes", t => {
+  const f = fixture(t);
+  f.write("CHANGELOG.md", "# Notes\r\n## 未发布\r\n\r\n中文内容\r\n");
+  f.run("changelog", "1.1.0", "2026-10-12");
+  assert.match(f.read("CHANGELOG.md"), /## v1.1.0 - 2026-10-12\n\r\n中文内容/);
+});
+test("PowerShell entry point prints its plan without creating files or tags", { skip: !windows }, t => {
+  const f = fixture(t);
+  const output = invoke("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", path.join(f.root, "scripts/windows/release.ps1"), "1.1.0", "-Installer"], f.root);
+  assert.match(output, /No files, tags, artifacts or remote refs changed/);
+  assert.match(output, /scripts\/windows\/release-installer.ps1/);
+  assert.equal(f.git("status", "--porcelain"), "");
+  assert.equal(f.git("tag", "--list", "v1.1.0"), "");
+});
+test("PowerShell native failures propagate instead of continuing release steps", { skip: !windows }, () => {
+  const script = `. ${ps(path.join(repo, "scripts/windows/common.ps1"))}; Invoke-Native powershell.exe @('-NoProfile', '-Command', 'exit 9'); 'UNEXPECTED'`;
+  const result = spawnSync("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script], { encoding: "utf8", windowsHide: true });
+  assert.equal(result.status, 1);
+  assert.doesNotMatch(result.stdout, /UNEXPECTED/);
+  assert.match(result.stderr, /failed \(exit 9\)/);
+});
+
+test("Windows full release runs offline through CV, updater and installer publication", { skip: !windows }, t => {
+  const f = fixture(t);
+  // Replace only network ADB preparation; execute the actual release scripts.
+  f.write("scripts/windows/prepare-windows-adb.ps1", "Write-Host 'Fixture ADB ready'\n");
+  f.commit();
+  const bootstrap = path.join(repo, "scripts/__tests__/fixtures/offline-release.ps1");
+  const output = invoke("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", bootstrap], f.root);
+  assert.match(output, /Release complete: v1.1.0/);
+  assert.equal(f.git("status", "--porcelain"), "");
+  for (const tag of ["v1.1.0", "cv-code/1.1.0", "cv-runtime/windows-x86_64/1.1.0"]) {
+    assert.equal(f.git("tag", "--list", tag), tag);
+  }
+  const manifest = JSON.parse(f.read("src-tauri/resources/runtime-manifest.json"));
+  assert.equal(manifest.mashCvCodeVersion, "1.1.0");
+  assert.equal(manifest.mashCvRuntimeVersion, "1.1.0");
+  assert.match(manifest.platforms["windows-x86_64"].codeSha256, /^[a-f0-9]{64}$/);
+  assert.ok(manifest.platforms["darwin-aarch64"]);
+  const uploads = f.read("uploads.log");
+  const order = ["runtime/mash-cv/runtime/windows-x86_64/", "runtime/mash-cv/code/",
+    "releases/versions/v1.1.0/windows-x86_64/", "releases/versions/v1.1.0/latest.json",
+    "releases/stable/latest.json", "downloads/versions/", "downloads/latest/"];
+  let offset = -1;
+  for (const key of order) {
+    const next = uploads.indexOf(key, offset + 1);
+    assert.ok(next > offset, "Missing or out-of-order upload: " + key);
+    offset = next;
+  }
+  const work = "src-tauri/target/release-updater/v1.1.0/windows-x86_64/";
+  const id = fs.readdirSync(path.join(f.root, work))[0];
+  const updater = JSON.parse(f.read(work + id + "/latest.json"));
+  assert.ok(updater.platforms["darwin-aarch64"]);
+  assert.equal(updater.platforms["windows-x86_64"].signature, "fixture signature");
+});
+
+test("relocated template diff helper resolves repository resources from another directory", t => {
+  const f = fixture(t);
+  const report = JSON.parse(invoke(process.execPath, [path.join(repo, "scripts/shared/diff-server-templates.mjs"), "--json"], f.root));
+  assert.equal(path.resolve(report.root), path.join(repo, "src-tauri/resources/servers"));
+});

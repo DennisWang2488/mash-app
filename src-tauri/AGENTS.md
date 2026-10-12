@@ -41,7 +41,7 @@
 - Ensure icon files exist under `src-tauri/icons/` before running `pnpm tauri build` (the build will fail otherwise).
 - Test with `pnpm tauri dev` frequently; the Rust compiler catches many issues that TypeScript won't.
 - Vite is configured to ignore `src-tauri/` in its watcher — Rust changes trigger Tauri's own rebuild, not Vite's.
-- The `mash-cv` sidecar is shipped as independent artifacts, not inside the Tauri app bundle: a heavy PyInstaller `--onedir` runtime base zip plus a lightweight Python code zip. `sidecar/mash_cv/build_sidecar.sh` writes `dist/mash-cv-runtime-<platform>-v<runtimeVersion>.zip` and `dist/mash-cv-code-v<codeVersion>.zip`, then prints both SHA-256 values; publish those artifacts and update `src-tauri/resources/runtime-manifest.json`. The app installs them under `app_data_dir()/runtime/mash-cv/runtime/<version>/...` and `app_data_dir()/runtime/mash-cv/code/<version>/...`.
+- The `mash-cv` sidecar is shipped as independent artifacts, not inside the Tauri app bundle: a heavy PyInstaller `--onedir` runtime base zip plus a lightweight Python code zip. `scripts/macos/build-cv.sh` and `scripts/windows/build-cv.ps1` call the shared `sidecar/mash_cv/build_sidecar.py` builder to write `dist/mash-cv-runtime-<platform>-v<runtimeVersion>.zip` and `dist/mash-cv-code-v<codeVersion>.zip`, then print both SHA-256 values; publish those artifacts and update `src-tauri/resources/runtime-manifest.json`. The app installs them under `app_data_dir()/runtime/mash-cv/runtime/<version>/...` and `app_data_dir()/runtime/mash-cv/code/<version>/...`.
 
 ## Device Automation
 

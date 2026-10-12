@@ -14,7 +14,7 @@ APP_VERSION=""
 usage() {
   cat <<'EOF'
 Usage:
-  mise exec -- scripts/release.sh <app-version> [options]
+  mise exec -- scripts/macos/release.sh <app-version> [options]
 
 Plans or publishes a complete Mash release. Without --publish, the script is
 read-only and prints the release plan.
@@ -31,9 +31,9 @@ Options:
   -h, --help              Show this help.
 
 Examples:
-  mise exec -- scripts/release.sh 0.12.3
-  mise exec -- scripts/release.sh 0.13.0 --cv-code 0.4.25 --publish
-  mise exec -- scripts/release.sh 0.13.0 --cv-code 0.4.25 --dmg --push --publish
+  mise exec -- scripts/macos/release.sh 0.12.3
+  mise exec -- scripts/macos/release.sh 0.13.0 --cv-code 0.4.25 --publish
+  mise exec -- scripts/macos/release.sh 0.13.0 --cv-code 0.4.25 --dmg --push --publish
 
 Before an actual release, commit the current worktree and add user-facing notes
 under "## 未发布" in CHANGELOG.md. The script converts that heading to the
@@ -191,7 +191,7 @@ done
 validate_version "app version" "$APP_VERSION"
 [[ -z "$CV_CODE_VERSION" ]] || validate_version "CV code version" "$CV_CODE_VERSION"
 [[ -z "$CV_RUNTIME_VERSION" ]] || validate_version "CV runtime version" "$CV_RUNTIME_VERSION"
-[[ "$PLATFORM" =~ ^[A-Za-z0-9._-]+-[A-Za-z0-9._-]+$ ]] || fail "invalid platform: $PLATFORM"
+[[ "$PLATFORM" =~ ^darwin-(aarch64|x86_64)$ ]] || fail "invalid macOS platform: $PLATFORM; use scripts/windows/release.ps1 on Windows"
 [[ "$REMOTE" =~ ^[A-Za-z0-9._/-]+$ ]] || fail "invalid git remote: $REMOTE"
 
 require_cmd git
@@ -199,7 +199,7 @@ require_cmd node
 require_cmd rg
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 CURRENT_APP_VERSION="$(read_toml_version app version)"
@@ -271,7 +271,8 @@ CV_RUNTIME_CHANGED=false
 if has_changes_since "$RUNTIME_BASE_REF" \
   sidecar/mash_cv/pyproject.toml \
   sidecar/mash_cv/poetry.lock \
-  sidecar/mash_cv/build_sidecar.sh \
+  scripts/macos/build-cv.sh \
+  scripts/windows/build-cv.ps1 \
   sidecar/mash_cv/build_sidecar.py \
   src-tauri/resources/scrcpy; then
   CV_RUNTIME_CHANGED=true
@@ -313,16 +314,16 @@ if [[ "$PUBLISH" != true ]]; then
     echo "  + finalize and commit CHANGELOG.md for v$APP_VERSION"
   fi
   if [[ -n "$CV_RUNTIME_VERSION" ]]; then
-    print_command scripts/release-cv-runtime.sh --platform "$PLATFORM" "$CV_RUNTIME_VERSION"
+    print_command scripts/macos/release-cv-runtime.sh --platform "$PLATFORM" "$CV_RUNTIME_VERSION"
   fi
   if [[ -n "$CV_CODE_VERSION" ]]; then
-    print_command scripts/bump-cv-code-version.sh "$CV_CODE_VERSION"
-    print_command scripts/release-cv-code.sh "$CV_CODE_VERSION"
+    print_command scripts/macos/bump-cv-code-version.sh "$CV_CODE_VERSION"
+    print_command scripts/macos/release-cv-code.sh "$CV_CODE_VERSION"
     echo "  + apply CV code URL/SHA to runtime-manifest.json and commit"
   fi
-  print_command scripts/bump-app-version.sh "$APP_VERSION"
-  print_command scripts/release-tauri-updater.sh
-  [[ "$PUBLISH_DMG" != true ]] || print_command scripts/release-dmg.sh
+  print_command scripts/macos/bump-app-version.sh "$APP_VERSION"
+  print_command scripts/macos/release-tauri-updater.sh
+  [[ "$PUBLISH_DMG" != true ]] || print_command scripts/macos/release-dmg.sh
   if [[ "$PUSH" == true ]]; then
     print_command git push "$REMOTE" HEAD
     echo "  + push the release tags created by this run"
@@ -411,15 +412,15 @@ fi
 
 if [[ -n "$CV_RUNTIME_VERSION" ]]; then
   note "Publishing mash-cv runtime $CV_RUNTIME_VERSION"
-  run_command scripts/release-cv-runtime.sh --platform "$PLATFORM" "$CV_RUNTIME_VERSION"
+  run_command scripts/macos/release-cv-runtime.sh --platform "$PLATFORM" "$CV_RUNTIME_VERSION"
   CREATED_TAGS+=("$CV_RUNTIME_TAG")
 fi
 
 if [[ -n "$CV_CODE_VERSION" ]]; then
   note "Publishing mash-cv code $CV_CODE_VERSION"
-  run_command scripts/bump-cv-code-version.sh "$CV_CODE_VERSION"
+  run_command scripts/macos/bump-cv-code-version.sh "$CV_CODE_VERSION"
   CREATED_TAGS+=("$CV_CODE_TAG")
-  run_command scripts/release-cv-code.sh "$CV_CODE_VERSION"
+  run_command scripts/macos/release-cv-code.sh "$CV_CODE_VERSION"
 
   CODE_ARTIFACT="mash-cv-code-v${CV_CODE_VERSION}.zip"
   CODE_PATH="$REPO_ROOT/sidecar/mash_cv/dist/$CODE_ARTIFACT"
@@ -451,16 +452,16 @@ fi
 
 if [[ "$APP_VERSION" != "$CURRENT_APP_VERSION" ]]; then
   note "Bumping app to $APP_VERSION"
-  run_command scripts/bump-app-version.sh "$APP_VERSION"
+  run_command scripts/macos/bump-app-version.sh "$APP_VERSION"
   CREATED_TAGS+=("$APP_TAG")
 fi
 
 note "Publishing Tauri updater"
-TAURI_TARGET="$PLATFORM" run_command scripts/release-tauri-updater.sh
+TAURI_TARGET="$PLATFORM" run_command scripts/macos/release-tauri-updater.sh
 
 if [[ "$PUBLISH_DMG" == true ]]; then
   note "Publishing DMG installer"
-  run_command scripts/release-dmg.sh
+  run_command scripts/macos/release-dmg.sh
 fi
 
 if [[ "$PUSH" == true ]]; then

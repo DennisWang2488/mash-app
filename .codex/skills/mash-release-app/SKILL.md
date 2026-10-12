@@ -48,11 +48,11 @@ The configured R2-backed AWS profile can reject STS even when artifact uploads a
 working. Prefer validating required environment variables up front and rely on the
 release scripts' real checks:
 
-- `scripts/release-cv-code.sh` uploads the code zip, runs `head-object`, and
+- `scripts/macos/release-cv-code.sh` uploads the code zip, runs `head-object`, and
   validates the public artifact URL.
-- `scripts/release-cv-runtime.sh` uploads the runtime zip and validates the
+- `scripts/macos/release-cv-runtime.sh` uploads the runtime zip and validates the
   public runtime URL after the upload completes.
-- `scripts/release-tauri-updater.sh` uploads immutable artifacts, publishes
+- `scripts/macos/release-tauri-updater.sh` uploads immutable artifacts, publishes
   channel `latest.json`, and verifies the remote JSON plus artifact URL.
 
 For app releases, default scripts assume `TAURI_TARGET=darwin-aarch64` and `RELEASE_CHANNEL=stable`. Override explicitly when publishing another target or channel.
@@ -66,7 +66,7 @@ git tag --list 'cv-code/*' --sort=-v:refname | head -5
 git tag --list 'cv-runtime/*/*' --sort=-v:refname | head -10
 git tag --list 'v*' --sort=-v:refname | head -5
 git diff --name-only <last-cv-code-tag>..HEAD -- sidecar/mash_cv/mash_cv sidecar/mash_cv/tests src-tauri/resources/cv.json src-tauri/resources/templates
-git diff --name-only <last-cv-runtime-tag>..HEAD -- sidecar/mash_cv/pyproject.toml sidecar/mash_cv/poetry.lock sidecar/mash_cv/build_sidecar.sh sidecar/mash_cv/build_sidecar.py sidecar/mash_cv/mash_cv src-tauri/resources/scrcpy
+git diff --name-only <last-cv-runtime-tag>..HEAD -- sidecar/mash_cv/pyproject.toml sidecar/mash_cv/poetry.lock scripts/macos/build-cv.sh scripts/windows/build-cv.ps1 sidecar/mash_cv/build_sidecar.py sidecar/mash_cv/mash_cv src-tauri/resources/scrcpy
 git diff --name-only <last-app-tag>..HEAD
 ```
 
@@ -138,7 +138,7 @@ Document any skipped test and the reason.
 Only when runtime changed:
 
 ```bash
-mise exec -- scripts/release-cv-runtime.sh --platform darwin-aarch64 <runtime-version>
+mise exec -- scripts/macos/release-cv-runtime.sh --platform darwin-aarch64 <runtime-version>
 ```
 
 This script updates `[mash_cv].runtime`, builds the runtime zip, uploads it, validates the URL, updates `runtime-manifest.json`, commits, and tags `cv-runtime/<platform>/<runtime-version>`.
@@ -157,8 +157,8 @@ node -e 'const fs=require("fs"); const m=JSON.parse(fs.readFileSync("src-tauri/r
 Only when CV code changed:
 
 ```bash
-mise exec -- scripts/bump-cv-code-version.sh <code-version>
-mise exec -- scripts/release-cv-code.sh <code-version>
+mise exec -- scripts/macos/bump-cv-code-version.sh <code-version>
+mise exec -- scripts/macos/release-cv-code.sh <code-version>
 ```
 
 Capture the printed `artifact` URL and `sha256`, then update `src-tauri/resources/runtime-manifest.json`:
@@ -194,8 +194,8 @@ The app release must include the newest intended `runtime-manifest.json`, becaus
 After CV artifacts and manifest commits are in place:
 
 ```bash
-mise exec -- scripts/bump-app-version.sh <app-version>
-mise exec -- scripts/release-tauri-updater.sh
+mise exec -- scripts/macos/bump-app-version.sh <app-version>
+mise exec -- scripts/macos/release-tauri-updater.sh
 ```
 
 `bump-app-version.sh` updates versions, commits, and tags `v<app-version>`. `release-tauri-updater.sh` must run from that exact clean tag; it builds the app, uploads immutable bundle/signature assets, publishes channel `latest.json`, and validates CDN URLs.
@@ -236,3 +236,13 @@ Push only tags that were actually created in this release.
 - Rollback note: the previous stable `latest.json` URL/version and the command or object needed to restore it.
 - GitHub/Git remote push of release commits and all created tags.
 - State-machine docs when automation states, routing, probes, or `cv.json` semantics changed.
+
+## Windows entry points
+
+Use native PowerShell scripts in scripts/windows/ on Windows. The complete entry
+point is release.ps1 <app-version> (read-only by default); add -Publish to execute,
+-CvCode <version>, -CvRuntime <version>, -Installer and -Push as needed.
+Individual entry points are bump-app-version.ps1, bump-cv-code-version.ps1,
+release-cv-code.ps1, release-cv-runtime.ps1, release-tauri-updater.ps1 and
+release-installer.ps1. Shared Node helpers live in scripts/shared/.
+See docs/windows.md for Windows environment setup and multi-platform ordering.

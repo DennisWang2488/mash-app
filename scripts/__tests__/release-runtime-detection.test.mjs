@@ -5,7 +5,7 @@ import path from "node:path";
 import { spawnSync, execFileSync } from "node:child_process";
 import test from "node:test";
 
-const source = fs.readFileSync(new URL("../release.sh", import.meta.url), "utf8").replaceAll("\r\n", "\n");
+const source = fs.readFileSync(new URL("../macos/release.sh", import.meta.url), "utf8").replaceAll("\r\n", "\n");
 const changeFunction = source.match(/^has_changes_since\(\) \{\n[\s\S]*?^\}/m)[0];
 const runtimeDetection = source.slice(source.indexOf("CV_RUNTIME_CHANGED=false\n"), source.indexOf('\nif [[ "$CV_CODE_CHANGED"'));
 const runtimeGate = source.match(/^if \[\[ "\$CV_RUNTIME_CHANGED"[\s\S]*?^fi/m)[0];
@@ -13,7 +13,7 @@ const bash = process.platform === "win32" ? path.join(process.env.ProgramFiles, 
 
 for (const [changed, expected] of [
   ["sidecar/mash_cv/build_sidecar.py", true],
-  ["sidecar/mash_cv/build_sidecar.sh", true],
+  ["scripts/macos/build-cv.sh", true],
   ["sidecar/mash_cv/mash_cv/cv.py", false],
 ]) {
   test(`runtime release gate detects ${changed}: ${expected}`, t => {

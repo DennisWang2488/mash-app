@@ -12,7 +12,7 @@ LATEST_CACHE_CONTROL="${LATEST_CACHE_CONTROL:-no-cache}"
 usage() {
   cat <<'EOF'
 Usage:
-  R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/release-tauri-updater.sh
+  R2_ENDPOINT=... R2_BUCKET=... RELEASE_BASE_URL=... scripts/macos/release-tauri-updater.sh
 
 Required environment:
   R2_ENDPOINT       Cloudflare R2 S3 endpoint, e.g. https://<accountid>.r2.cloudflarestorage.com
@@ -63,13 +63,12 @@ aws_s3_cp() {
 }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 case "$(uname -s)" in
   Darwin) TARGET_OS=darwin ;;
-  MINGW*|MSYS*|CYGWIN*) TARGET_OS=windows ;;
-  *) fail "unsupported native release host" ;;
+  *) fail "run this script on macOS; use scripts/windows/release-tauri-updater.ps1 on Windows" ;;
 esac
 TARGET_ARCH="$(uname -m)"
 [[ "$TARGET_ARCH" != arm64 ]] || TARGET_ARCH=aarch64
@@ -78,7 +77,6 @@ TAURI_TARGET="${TAURI_TARGET:-$NATIVE_TARGET}"
 [[ "$TAURI_TARGET" == "$NATIVE_TARGET" ]] || fail "TAURI_TARGET must match the native build host ($NATIVE_TARGET)"
 case "$TAURI_TARGET" in
   darwin-*) BUNDLE_KIND=app ;;
-  windows-*) BUNDLE_KIND=nsis ;;
   *) fail "unsupported updater platform: $TAURI_TARGET" ;;
 esac
 
@@ -118,7 +116,7 @@ pnpm tauri build --bundles "$BUNDLE_KIND"
 BUNDLE_DIR="$REPO_ROOT/src-tauri/target/release/bundle"
 [[ -d "$BUNDLE_DIR" ]] || fail "bundle directory not found: $BUNDLE_DIR"
 
-ARTIFACT_FILE="$(node scripts/updater-artifact.mjs "$BUNDLE_DIR" src-tauri/tauri.conf.json "$TAURI_TARGET")" \
+ARTIFACT_FILE="$(node scripts/shared/updater-artifact.mjs "$BUNDLE_DIR" src-tauri/tauri.conf.json "$TAURI_TARGET")" \
   || fail "selecting the current updater artifact failed"
 SIG_FILE="$ARTIFACT_FILE.sig"
 
@@ -141,7 +139,7 @@ fetch_optional_manifest() {
 }
 fetch_optional_manifest "$RELEASE_BASE_URL/$VERSION_LATEST_KEY" "$PREVIOUS_VERSION_JSON"
 fetch_optional_manifest "$RELEASE_BASE_URL/$CHANNEL_LATEST_KEY" "$PREVIOUS_CHANNEL_JSON"
-node scripts/updater-manifest.mjs "$LATEST_JSON" "$VERSION" "$PUB_DATE" \
+node scripts/shared/updater-manifest.mjs "$LATEST_JSON" "$VERSION" "$PUB_DATE" \
   "$TAURI_TARGET" "$ARTIFACT_URL" "$SIGNATURE" "$PREVIOUS_VERSION_JSON" "$PREVIOUS_CHANNEL_JSON"
 
 echo "Uploading immutable artifacts"
