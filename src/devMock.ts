@@ -262,6 +262,10 @@ function debugSettings() {
 
 async function invokeLegacyDevMock<T>(cmd: string, args: InvokeArgs = {}): Promise<T> {
   switch (cmd) {
+    case "get_window_chrome":
+      return { customTitlebar: true, maximized: false, title: "Mash", version: "预览" } as T;
+    case "window_chrome_action":
+      return undefined as T;
     case "run_startup_migration":
       return { migrated: false, from: null, to: "/dev/mash-app-data" } as T;
     case "get_servants":

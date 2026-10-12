@@ -1,5 +1,18 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Mash",
+        "width": 1100,
+        "height": 702,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": false
+      }
+    ]
+  },
   "bundle": {
     "targets": ["nsis"],
     "resources": {

@@ -23,3 +23,4 @@ pub(crate) mod projects;
 pub(crate) mod rank_up_quest;
 pub(crate) mod runtime;
 pub(crate) mod settings;
+pub(crate) mod window_chrome;
