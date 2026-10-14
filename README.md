@@ -1,6 +1,16 @@
-# mash
+# Mash · FGO 自动化辅助工具
 
-An automation tool for FGO (Fate/Grand Order). Connects to an Android device or emulator via ADB and automates party setup, support selection, and more.
+> 更轻松地完成重复战斗。
+
+**Mash** 是一款跨平台（Windows + M 芯片 macOS）的 Fate/Grand Order (FGO) 自动化辅助工具，通过 ADB 连接安卓设备或模拟器，支持自动选助战、自动战斗、冠位戴冠战等功能。
+
+📚 文档 & 下载：[https://docs.mash.xiaotongx.com/](https://docs.mash.xiaotongx.com/)
+
+## 主要功能
+
+- **自动选助战**：根据队伍配置识别并选择需要的助战从者与礼装
+- **自动战斗**：配置准备阶段、战斗阶段、重复次数和行动力恢复策略
+- **冠位戴冠战**：支持启动条件、控制技能、自动换人和指令卡策略
 
 ## Tech Stack
 
